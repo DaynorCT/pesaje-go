@@ -8,6 +8,11 @@ import { montarReportes } from './modulos/reportes';
 import { montarBoletaConfig } from './modulos/boleta-config';
 import { iconoUsuarioCabeceraHTML, insertarIconoModulo } from './iconos-modulo';
 import { deGrupo, porId, principales, type ModuloId } from './navegacion';
+
+const IDS_ABM: ModuloId[] = [
+  'usuarios', 'empresas', 'choferes', 'proveedores',
+  'vehiculos', 'productos', 'origenes', 'destinos',
+];
 import {
   AbrirSistemaWeb,
   CerrarSesion,
@@ -56,7 +61,11 @@ export function montarShell(
               <div class="menu-flotante shell-menu-usuario" id="menu-usuario" hidden></div>
             </div>
           </div>
-          <h1 class="titulo-modulo shell-titulo">${mod.titulo}</h1>
+          ${
+            IDS_ABM.includes(mod.id)
+              ? ''
+              : `<h1 class="titulo-modulo shell-titulo">${mod.titulo}</h1>`
+          }
         </header>
         <main class="shell-contenido" id="shell-contenido"></main>
       </div>
@@ -212,11 +221,7 @@ function pintarContenido(host: HTMLElement, mod: ReturnType<typeof porId>): (() 
     host.replaceChildren();
     return montarBalanza(host);
   }
-  const abmIds: ModuloId[] = [
-    'usuarios', 'empresas', 'choferes', 'proveedores',
-    'vehiculos', 'productos', 'origenes', 'destinos',
-  ];
-  if (abmIds.includes(mod.id)) {
+  if (IDS_ABM.includes(mod.id)) {
     host.className = 'shell-contenido shell-contenido-abm';
     host.replaceChildren();
   return montarCatalogo(host, mod.id) ?? undefined;

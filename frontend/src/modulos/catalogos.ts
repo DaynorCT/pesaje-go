@@ -1,22 +1,27 @@
 import type { ModuloId } from '../navegacion';
+import { porId } from '../navegacion';
 import { montarAbm, type ConfigAbm } from './abm';
 
-const catalogoSimple = (entidad: string, titulo: string): ConfigAbm => ({
+type ConfigAbmBase = Omit<ConfigAbm, 'tituloModulo'>;
+
+const catalogoSimple = (entidad: string, titulo: string, tituloEntidad: string): ConfigAbmBase => ({
   entidad,
+  tituloEntidad,
   columnas: [{ clave: 'nombre', titulo: titulo }],
   campos: [
     { clave: 'nombre', etiqueta: 'Nombre', requerido: true },
-    { clave: 'descripcion', etiqueta: 'Descripción' },
+    { clave: 'descripcion', etiqueta: 'Descripción', anchoCompleto: true },
     { clave: 'estado', etiqueta: 'Estado', tipo: 'estado', soloEdicion: true },
   ],
 });
 
-const CONFIGS: Partial<Record<ModuloId, ConfigAbm>> = {
-  productos: catalogoSimple('productos', 'Nombre'),
-  origenes: catalogoSimple('origenes', 'Nombre'),
-  destinos: catalogoSimple('destinos', 'Nombre'),
+const CONFIGS: Partial<Record<ModuloId, ConfigAbmBase>> = {
+  productos: catalogoSimple('productos', 'Nombre', 'producto'),
+  origenes: catalogoSimple('origenes', 'Nombre', 'origen'),
+  destinos: catalogoSimple('destinos', 'Nombre', 'destino'),
   vehiculos: {
     entidad: 'vehiculos',
+    tituloEntidad: 'vehículo',
     columnas: [
       { clave: 'placa', titulo: 'Placa' },
       { clave: 'tara', titulo: 'Tara' },
@@ -30,6 +35,7 @@ const CONFIGS: Partial<Record<ModuloId, ConfigAbm>> = {
   },
   choferes: {
     entidad: 'choferes',
+    tituloEntidad: 'chofer',
     columnas: [
       { clave: 'nombre_completo', titulo: 'Nombre' },
       { clave: 'ci', titulo: 'CI' },
@@ -48,6 +54,7 @@ const CONFIGS: Partial<Record<ModuloId, ConfigAbm>> = {
   },
   proveedores: {
     entidad: 'proveedores',
+    tituloEntidad: 'proveedor',
     columnas: [
       { clave: 'nombre_completo', titulo: 'Nombre' },
       { clave: 'ci', titulo: 'CI' },
@@ -61,12 +68,13 @@ const CONFIGS: Partial<Record<ModuloId, ConfigAbm>> = {
       { clave: 'ci', etiqueta: 'CI' },
       { clave: 'telefono', etiqueta: 'Teléfono' },
       { clave: 'empresa', etiqueta: 'Empresa', requerido: true },
-      { clave: 'descripcion', etiqueta: 'Descripción' },
+      { clave: 'descripcion', etiqueta: 'Descripción', anchoCompleto: true },
       { clave: 'estado', etiqueta: 'Estado', tipo: 'estado', soloEdicion: true },
     ],
   },
   empresas: {
     entidad: 'empresas',
+    tituloEntidad: 'empresa',
     columnas: [
       { clave: 'nombre', titulo: 'Empresa' },
       { clave: 'actividad', titulo: 'Actividad' },
@@ -83,6 +91,7 @@ const CONFIGS: Partial<Record<ModuloId, ConfigAbm>> = {
   },
   usuarios: {
     entidad: 'usuarios',
+    tituloEntidad: 'usuario',
     columnas: [
       { clave: 'ci', titulo: 'Nro. documento' },
       { clave: 'nombre_completo', titulo: 'Nombres' },
@@ -107,5 +116,6 @@ const CONFIGS: Partial<Record<ModuloId, ConfigAbm>> = {
 export function montarCatalogo(host: HTMLElement, id: ModuloId): (() => void) | undefined {
   const cfg = CONFIGS[id];
   if (!cfg) return undefined;
-  return montarAbm(host, cfg);
+  const tituloModulo = porId(id)?.titulo ?? cfg.entidad;
+  return montarAbm(host, { ...cfg, tituloModulo });
 }
