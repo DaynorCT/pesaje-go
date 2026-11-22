@@ -68,7 +68,7 @@ export function montarShell(
             </div>
           </div>
           ${
-            IDS_ABM.includes(mod.id) || mod.id === 'pesaje'
+            IDS_ABM.includes(mod.id) || mod.id === 'pesaje' || mod.id === 'inicio'
               ? ''
               : `<h1 class="titulo-modulo shell-titulo">${mod.titulo}</h1>`
           }
@@ -85,7 +85,10 @@ export function montarShell(
       render();
     });
 
-    limpiarModulo = pintarContenido(contenedor.querySelector('#shell-contenido') as HTMLElement, mod);
+    limpiarModulo = pintarContenido(contenedor.querySelector('#shell-contenido') as HTMLElement, mod, (id) => {
+      modulo = id;
+      render();
+    });
     enlazarUsuario(contenedor, sesion, destruir);
   };
 
@@ -200,12 +203,16 @@ function cerrarSubmenus(root: ParentNode): void {
   root.querySelectorAll('.shell-submenu').forEach((el) => el.remove());
 }
 
-function pintarContenido(host: HTMLElement, mod: ReturnType<typeof porId>): (() => void) | undefined {
+function pintarContenido(
+  host: HTMLElement,
+  mod: ReturnType<typeof porId>,
+  irAModulo?: (id: ModuloId) => void,
+): (() => void) | undefined {
   if (!mod) return undefined;
   if (mod.id === 'inicio') {
-    host.className = 'shell-contenido';
+    host.className = 'shell-contenido shell-contenido-abm';
     host.replaceChildren();
-    return montarInicio(host);
+    return montarInicio(host, { irAModulo });
   }
   if (mod.id === 'reportes') {
     host.className = 'shell-contenido shell-contenido-abm';

@@ -15,17 +15,25 @@ import (
 	"sistema-pesaje/internal/reportes"
 )
 
+type PuntoDiaDTO struct {
+	Fecha    string `json:"fecha"`
+	Cantidad int64  `json:"cantidad"`
+}
+
 type ResumenInicioDTO struct {
-	PesajesTotal       int64  `json:"pesajesTotal"`
-	PesajesHoy         int64  `json:"pesajesHoy"`
-	VehiculosActivos   int64  `json:"vehiculosActivos"`
-	ProductosActivos   int64  `json:"productosActivos"`
-	ChoferesActivos    int64  `json:"choferesActivos"`
-	ProveedoresActivos int64  `json:"proveedoresActivos"`
-	SyncConfigurada    bool   `json:"syncConfigurada"`
-	SyncEstado         string `json:"syncEstado"`
-	SyncPendientes     int    `json:"syncPendientes"`
-	SyncErrores        int    `json:"syncErrores"`
+	PesajesTotal          int64         `json:"pesajesTotal"`
+	PesajesHoy            int64         `json:"pesajesHoy"`
+	PesajesEnProceso      int64         `json:"pesajesEnProceso"`
+	PesajesFinalizadosHoy int64         `json:"pesajesFinalizadosHoy"`
+	VehiculosActivos      int64         `json:"vehiculosActivos"`
+	ProductosActivos      int64         `json:"productosActivos"`
+	ChoferesActivos       int64         `json:"choferesActivos"`
+	ProveedoresActivos    int64         `json:"proveedoresActivos"`
+	Ultimos7Dias          []PuntoDiaDTO `json:"ultimos7Dias"`
+	SyncConfigurada       bool          `json:"syncConfigurada"`
+	SyncEstado            string        `json:"syncEstado"`
+	SyncPendientes        int           `json:"syncPendientes"`
+	SyncErrores           int           `json:"syncErrores"`
 }
 
 type BoletaConfigDTO struct {
@@ -68,10 +76,16 @@ func (a *App) InicioResumen() (ResumenInicioDTO, error) {
 	}
 	out.PesajesTotal = r.PesajesTotal
 	out.PesajesHoy = r.PesajesHoy
+	out.PesajesEnProceso = r.PesajesEnProceso
+	out.PesajesFinalizadosHoy = r.PesajesFinalizadosHoy
 	out.VehiculosActivos = r.VehiculosActivos
 	out.ProductosActivos = r.ProductosActivos
 	out.ChoferesActivos = r.ChoferesActivos
 	out.ProveedoresActivos = r.ProveedoresActivos
+	out.Ultimos7Dias = make([]PuntoDiaDTO, len(r.Ultimos7Dias))
+	for i, p := range r.Ultimos7Dias {
+		out.Ultimos7Dias[i] = PuntoDiaDTO{Fecha: p.Fecha, Cantidad: p.Cantidad}
+	}
 	return out, nil
 }
 

@@ -493,6 +493,20 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class PuntoDiaDTO {
+	    fecha: string;
+	    cantidad: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new PuntoDiaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.fecha = source["fecha"];
+	        this.cantidad = source["cantidad"];
+	    }
+	}
 	export class RegistrarPesajeDTO {
 	    vehiculoId: number;
 	    choferId?: number;
@@ -528,10 +542,13 @@ export namespace main {
 	export class ResumenInicioDTO {
 	    pesajesTotal: number;
 	    pesajesHoy: number;
+	    pesajesEnProceso: number;
+	    pesajesFinalizadosHoy: number;
 	    vehiculosActivos: number;
 	    productosActivos: number;
 	    choferesActivos: number;
 	    proveedoresActivos: number;
+	    ultimos7Dias: PuntoDiaDTO[];
 	    syncConfigurada: boolean;
 	    syncEstado: string;
 	    syncPendientes: number;
@@ -545,15 +562,36 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.pesajesTotal = source["pesajesTotal"];
 	        this.pesajesHoy = source["pesajesHoy"];
+	        this.pesajesEnProceso = source["pesajesEnProceso"];
+	        this.pesajesFinalizadosHoy = source["pesajesFinalizadosHoy"];
 	        this.vehiculosActivos = source["vehiculosActivos"];
 	        this.productosActivos = source["productosActivos"];
 	        this.choferesActivos = source["choferesActivos"];
 	        this.proveedoresActivos = source["proveedoresActivos"];
+	        this.ultimos7Dias = this.convertValues(source["ultimos7Dias"], PuntoDiaDTO);
 	        this.syncConfigurada = source["syncConfigurada"];
 	        this.syncEstado = source["syncEstado"];
 	        this.syncPendientes = source["syncPendientes"];
 	        this.syncErrores = source["syncErrores"];
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	
 	export class VehiculoDetalleDTO {
