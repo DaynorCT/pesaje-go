@@ -16,10 +16,10 @@ func main() {
 
 	err := wails.Run(&options.App{
 		Title:     "Sistema de Pesaje",
-		Width:     1024,
-		Height:    768,
-		MinWidth:  480,
-		MinHeight: 680,
+		Width:     460,
+		Height:    520,
+		MinWidth:  420,
+		MinHeight: 480,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
