@@ -247,6 +247,14 @@ input.password-field:focus {
   margin: 0;
 }
 
+.dlg-aviso {
+  border: none;
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: transparent;
+}
+
 .dlg-aviso::backdrop {
   background: rgba(0, 0, 0, 0.25);
 }
@@ -257,6 +265,7 @@ input.password-field:focus {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  border-radius: 12px;
 }
 
 .dlg-acciones {
@@ -502,8 +511,11 @@ input.password-field:focus {
 .abm-dialog {
   border: none;
   padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 32px);
+  background: transparent;
 }
 
 .abm-dialog--2 {
@@ -518,6 +530,7 @@ input.password-field:focus {
   margin: 0;
   max-height: calc(100vh - 48px);
   overflow: auto;
+  border-radius: 12px;
 }
 
 .abm-dialog-grid {
