@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 
 	"sistema-pesaje/internal/datos"
@@ -65,6 +66,36 @@ type FilaPesajeDTO struct {
 	PesoNeto        int    `json:"pesoNeto"`
 	Estado          string `json:"estado"`
 	EstadoBalanza   string `json:"estadoBalanza"`
+}
+
+type PesajeEdicionDTO struct {
+	ID               int64  `json:"id"`
+	VehiculoID       int64  `json:"vehiculoId"`
+	ChoferID         *int64 `json:"choferId"`
+	ProveedorID      *int64 `json:"proveedorId"`
+	ProductoID       *int64 `json:"productoId"`
+	OrigenID         *int64 `json:"origenId"`
+	DestinoID        *int64 `json:"destinoId"`
+	PesoBruto        int    `json:"pesoBruto"`
+	Tara             int    `json:"tara"`
+	CostoBs          int    `json:"costoBs"`
+	FleteBsPendiente int    `json:"fleteBsPendiente"`
+	EstadoBalanza    string `json:"estadoBalanza"`
+}
+
+type ActualizarPesajeDTO struct {
+	ID               int64  `json:"id"`
+	VehiculoID       int64  `json:"vehiculoId"`
+	ChoferID         *int64 `json:"choferId"`
+	ProveedorID      *int64 `json:"proveedorId"`
+	ProductoID       *int64 `json:"productoId"`
+	OrigenID         *int64 `json:"origenId"`
+	DestinoID        *int64 `json:"destinoId"`
+	PesoBruto        int    `json:"pesoBruto"`
+	Tara             int    `json:"tara"`
+	CostoBs          int    `json:"costoBs"`
+	FleteBsPendiente int    `json:"fleteBsPendiente"`
+	TaraManual       bool   `json:"taraManual"`
 }
 
 type RegistrarPesajeDTO struct {
@@ -277,6 +308,106 @@ func nullInt(v sql.NullInt64) int {
 		return 0
 	}
 	return int(v.Int64)
+}
+
+func (a *App) PesajeCargarEdicion(id int64) (PesajeEdicionDTO, error) {
+	if a.db == nil {
+		return PesajeEdicionDTO{}, fmt.Errorf("base no disponible")
+	}
+	p, ok, err := datos.ObtenerPesajeEdicion(context.Background(), a.db.Conn(), id)
+	if err != nil {
+		return PesajeEdicionDTO{}, err
+	}
+	if !ok {
+		return PesajeEdicionDTO{}, fmt.Errorf("pesaje no encontrado")
+	}
+	a.muPesaje.Lock()
+	a.pesajeUI.pesoBruto = p.PesoBruto
+	a.pesajeUI.pesoTara = p.Tara
+	a.pesajeUI.mensaje = fmt.Sprintf("Editando pesaje #%d.", id)
+	a.pesajeUI.esError = false
+	a.muPesaje.Unlock()
+	return PesajeEdicionDTO{
+		ID:               p.ID,
+		VehiculoID:       p.VehiculoID,
+		ChoferID:         p.ChoferID,
+		ProveedorID:      p.ProveedorID,
+		ProductoID:       p.ProductoID,
+		OrigenID:         p.OrigenID,
+		DestinoID:        p.DestinoID,
+		PesoBruto:        p.PesoBruto,
+		Tara:             p.Tara,
+		CostoBs:          p.CostoBs,
+		FleteBsPendiente: p.FleteBsPendiente,
+		EstadoBalanza:    p.EstadoBalanza,
+	}, nil
+}
+
+// PesajeCancelarEdicion abandona la edición en pantalla y limpia pesos del panel.
+func (a *App) PesajeCancelarEdicion() EstadoPesajePaneDTO {
+	a.muPesaje.Lock()
+	a.pesajeUI.pesoBruto = 0
+	a.pesajeUI.pesoTara = 0
+	a.pesajeUI.mensaje = ""
+	a.pesajeUI.esError = false
+	a.muPesaje.Unlock()
+	return a.construirEstadoPesajePane()
+}
+
+func (a *App) PesajeActualizarRegistro(dto ActualizarPesajeDTO) AccionDTO {
+	if a.db == nil || a.sesion == nil {
+		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Pesaje", Mensaje: "Sesión o base no disponible.", EsError: true}}
+	}
+	if dto.ID <= 0 {
+		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Pesaje", Mensaje: "Identificador inválido.", EsError: true}}
+	}
+	if dto.VehiculoID <= 0 {
+		a.pesajeEstablecerMensaje("Seleccione un vehículo (placa).", true)
+		est := a.construirEstadoPesajePane()
+		return AccionDTO{OK: false, EstadoPesaje: ptrEstadoPesaje(est)}
+	}
+	bruto := dto.PesoBruto
+	tara := dto.Tara
+	if err := modelo.Validar(bruto, tara); err != nil {
+		a.pesajeEstablecerMensaje(err.Error(), true)
+		est := a.construirEstadoPesajePane()
+		return AccionDTO{OK: false, EstadoPesaje: ptrEstadoPesaje(est)}
+	}
+	existente, ok, err := datos.ObtenerPesajeEdicion(context.Background(), a.db.Conn(), dto.ID)
+	if err != nil || !ok {
+		msg := "No se encontró el pesaje."
+		if err != nil {
+			msg = err.Error()
+		}
+		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Pesaje", Mensaje: msg, EsError: true}}
+	}
+	reg := datos.PesajeEdicion{
+		ID:               dto.ID,
+		VehiculoID:       dto.VehiculoID,
+		ChoferID:         dto.ChoferID,
+		ProveedorID:      dto.ProveedorID,
+		ProductoID:       dto.ProductoID,
+		OrigenID:         dto.OrigenID,
+		DestinoID:        dto.DestinoID,
+		PesoBruto:        bruto,
+		Tara:             tara,
+		CostoBs:          dto.CostoBs,
+		FleteBsPendiente: dto.FleteBsPendiente,
+		EstadoBalanza:    existente.EstadoBalanza,
+	}
+	if err := datos.ActualizarPesajeRegistro(context.Background(), a.db.Conn(), reg, a.sesion.ID); err != nil {
+		a.pesajeEstablecerMensaje(err.Error(), true)
+		est := a.construirEstadoPesajePane()
+		return AccionDTO{OK: false, EstadoPesaje: ptrEstadoPesaje(est)}
+	}
+	a.muPesaje.Lock()
+	a.pesajeUI.pesoBruto = 0
+	a.pesajeUI.pesoTara = 0
+	a.pesajeUI.mensaje = "Pesaje actualizado correctamente."
+	a.pesajeUI.esError = false
+	a.muPesaje.Unlock()
+	est := a.construirEstadoPesajePane()
+	return AccionDTO{OK: true, EstadoPesaje: ptrEstadoPesaje(est)}
 }
 
 func (a *App) PesajeRegistrar(dto RegistrarPesajeDTO) AccionDTO {

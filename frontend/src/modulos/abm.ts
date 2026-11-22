@@ -1,5 +1,6 @@
 import { AbmGuardar, AbmListar } from '../../wailsjs/go/main/App';
-import { enlazarDialogo, fijarAnchoDialogo, htmlDialogoFormGuardar } from '../dialogo';
+import { aplicarLayoutDialogoCampos, enlazarDialogo, htmlDialogoFormGuardar } from '../dialogo';
+import { ICONO_EDITAR_TABLA, sincronizarSwitchEstado } from '../tablas-acciones';
 
 export type CampoAbm = {
   clave: string;
@@ -28,7 +29,6 @@ export type ConfigAbm = {
   campos: CampoAbm[];
 };
 
-const ICONO_LAPIZ = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`;
 
 type Fila = { id: number; estado: string; celdas: Record<string, string> };
 
@@ -36,9 +36,6 @@ function tituloCapitalizado(tituloEntidad: string): string {
   return tituloEntidad.charAt(0).toUpperCase() + tituloEntidad.slice(1);
 }
 
-function columnasDialogo(camposVisibles: number): 2 | 3 {
-  return camposVisibles > 7 ? 3 : 2;
-}
 
 function etiquetaEstadoSwitch(activo: boolean): string {
   return activo ? 'ACTIVO' : 'INACTIVO';
@@ -57,14 +54,6 @@ function actualizarTextoEstado(tr: HTMLTableRowElement, _estado: string, activo:
   el.className = `estado-etiqueta ${activo ? 'estado-etiqueta--activo' : 'estado-etiqueta--inactivo'}`;
 }
 
-function sincronizarSwitchUI(input: HTMLInputElement, activo: boolean): void {
-  const label = input.closest('.abm-switch') as HTMLElement | null;
-  const txt = etiquetaEstadoSwitch(activo);
-  input.checked = activo;
-  input.setAttribute('aria-label', txt);
-  input.setAttribute('aria-checked', activo ? 'true' : 'false');
-  if (label) label.dataset.tip = txt;
-}
 
 export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
   const entLabel = tituloCapitalizado(cfg.tituloEntidad);
@@ -149,9 +138,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
       wrap.classList.toggle('oculto', oculto);
       if (!oculto) visibles += 1;
     }
-    const cols = columnasDialogo(visibles);
-    camposHost.className = `abm-dialog-grid abm-dialog-grid--${cols}`;
-    fijarAnchoDialogo(dialog, cols === 3 ? 'amplio' : 'medio');
+    aplicarLayoutDialogoCampos(camposHost, visibles, dialog);
     return visibles;
   };
 
@@ -247,12 +234,12 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
       campos,
     })) as { ok: boolean; mensaje: string; esError?: boolean };
     if (!res.ok) {
-      sincronizarSwitchUI(input, !activo);
+      sincronizarSwitchEstado(input, !activo);
       mostrarMsg(res.mensaje, true);
       return;
     }
     fila.estado = nuevo;
-    sincronizarSwitchUI(input, activo);
+    sincronizarSwitchEstado(input, activo);
     const tr = input.closest('tr');
     if (tr) actualizarTextoEstado(tr, nuevo, activo);
     if (seleccionId === fila.id && dialog.open) {
@@ -278,7 +265,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
         celdas +
         htmlCeldaEstado(f.estado, activo) +
         `<td class="tabla-celda-acciones">
-          <button type="button" class="abm-btn-editar" data-tip="Editar ${entLabel}" aria-label="Editar ${entLabel}">${ICONO_LAPIZ}</button>
+          <button type="button" class="abm-btn-editar tabla-btn-icono" data-tip="Editar ${entLabel}" aria-label="Editar ${entLabel}">${ICONO_EDITAR_TABLA}</button>
           <label class="abm-switch" data-tip="${estadoTxt}">
             <input type="checkbox" class="abm-switch-input" role="switch" ${activo ? 'checked' : ''} aria-label="${estadoTxt}" aria-checked="${activo ? 'true' : 'false'}" />
             <span class="abm-switch-pista"></span>

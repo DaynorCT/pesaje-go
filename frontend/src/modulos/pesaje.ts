@@ -1,5 +1,8 @@
 import {
+  PesajeActualizarRegistro,
   PesajeActualizarTara,
+  PesajeCancelarEdicion,
+  PesajeCargarEdicion,
   PesajeAlternarBalanza,
   PesajeBoleta,
   PesajeCapturarBruto,
@@ -17,7 +20,19 @@ import {
   PesajeOpciones,
   PesajeRegistrar,
 } from '../../wailsjs/go/main/App';
-import { crearDialogoAviso, enlazarDialogo, htmlDialogoFormGuardar } from '../dialogo';
+import {
+  aplicarLayoutDialogoCampos,
+  crearDialogoAviso,
+  enlazarDialogo,
+  htmlDialogoFormGuardar,
+} from '../dialogo';
+import {
+  ICONO_BOLETA_TABLA,
+  ICONO_EDITAR_TABLA,
+  ICONO_FINALIZAR_TABLA,
+  htmlSwitchFila,
+  sincronizarSwitchEstado,
+} from '../tablas-acciones';
 
 type Opcion = { id: number; label: string };
 
@@ -63,6 +78,7 @@ type AccionPesaje = {
 export function montarPesaje(host: HTMLElement): () => void {
   let timer = 0;
   let taraManual = false;
+  let pesajeEdicionId = 0;
   let opciones: {
     vehiculos: Opcion[];
     choferes: Opcion[];
@@ -73,7 +89,10 @@ export function montarPesaje(host: HTMLElement): () => void {
   } = { vehiculos: [], choferes: [], proveedores: [], productos: [], origenes: [], destinos: [] };
 
   host.innerHTML = `
-    <div class="panel-pesaje">
+    <div class="panel-pesaje abm-panel">
+      <header class="abm-cabecera">
+        <h2 class="titulo-tarjeta abm-titulo-modulo">Pesaje</h2>
+      </header>
       <div class="panel-pesaje-medio">
         <section class="tarjeta pesaje-registro">
           <h2 class="titulo-tarjeta">Registro de peso</h2>
@@ -101,7 +120,8 @@ export function montarPesaje(host: HTMLElement): () => void {
           <div class="pesaje-grid-datos" id="grid-datos"></div>
           <div class="separador-horizontal"></div>
           <div class="pesaje-guardar">
-            <button type="button" class="boton-primario" id="btn-guardar">Registrar Pesaje</button>
+            <button type="button" class="boton-secundario oculto" id="btn-cancelar-edicion">CANCELAR</button>
+            <button type="button" class="boton-primario" id="btn-guardar">REGISTRAR PESAJE</button>
           </div>
         </section>
       </div>
@@ -137,7 +157,7 @@ export function montarPesaje(host: HTMLElement): () => void {
 
   const qs = <T extends HTMLElement>(sel: string) => host.querySelector(sel) as T;
   const slotDialogos = qs<HTMLElement>('#pesaje-dialogos');
-  const aviso = crearDialogoAviso(slotDialogos, 'dlg-aviso', 'medio');
+  const aviso = crearDialogoAviso(slotDialogos, 'dlg-aviso', 'compacto');
   const wrapRapido = document.createElement('div');
   wrapRapido.innerHTML = htmlDialogoFormGuardar({
     dialogId: 'dlg-rapido',
@@ -146,6 +166,8 @@ export function montarPesaje(host: HTMLElement): () => void {
     cuerpoId: 'rapido-campos',
     mensajeId: 'rapido-msg',
     cancelarId: 'rapido-cancelar',
+    clasesCuerpoId: 'abm-dialog-grid',
+    scroll: true,
     ancho: 'medio',
   });
   slotDialogos.appendChild(wrapRapido.firstElementChild!);
@@ -261,10 +283,10 @@ export function montarPesaje(host: HTMLElement): () => void {
 
   const columnas = [
     'ID', 'Chofer', 'Placa', 'Lic.', 'Tipo', 'Prov.', 'Prod.', 'Orig.', 'Dest.',
-    'Costo', 'Flete', 'Fecha', 'Bruto', 'Tara', 'Neto', 'Est.', 'Balanza', 'Acc.',
+    'Costo', 'Flete', 'Fecha', 'Bruto', 'Tara', 'Neto', 'Estado', 'Balanza', 'Acciones.',
   ];
   const claseTh = (c: string) => {
-    if (c === 'Est.' || c === 'Balanza') return 'tabla-th-estado';
+    if (c === 'Estado' || c === 'Balanza') return 'tabla-th-estado';
     if (c === 'Acc.') return 'tabla-th-acciones';
     return '';
   };
@@ -283,19 +305,18 @@ export function montarPesaje(host: HTMLElement): () => void {
       const tr = document.createElement('tr');
       const activo = f.estado.toUpperCase() === 'ACTIVO';
       const enProceso = f.estadoBalanza.toUpperCase() === 'EN_PROCESO';
-      let acciones = '';
+      let acciones = `<button type="button" class="tabla-btn-icono" data-tip="Editar pesaje" data-act="editar" data-id="${f.id}" aria-label="Editar pesaje">${ICONO_EDITAR_TABLA}</button>`;
       if (activo) {
-        acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-tip="Desactivar" data-act="estado" data-id="${f.id}">Des.</button> `;
         if (enProceso) {
-          acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-tip="Finalizar pesaje" data-act="finalizar" data-id="${f.id}">Fin.</button>`;
+          acciones += `<button type="button" class="tabla-btn-icono" data-tip="Finalizar pesaje" data-act="finalizar" data-id="${f.id}" aria-label="Finalizar pesaje">${ICONO_FINALIZAR_TABLA}</button>`;
         } else {
-          acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-tip="Boleta PDF" data-act="boleta" data-id="${f.id}">Bol.</button>`;
+          acciones += `<button type="button" class="tabla-btn-icono" data-tip="Boleta PDF" data-act="boleta" data-id="${f.id}" aria-label="Boleta PDF">${ICONO_BOLETA_TABLA}</button>`;
         }
-      } else {
-        acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-tip="Reactivar" data-act="activar" data-id="${f.id}">Act.</button>`;
       }
-      const balanzaTxt = etiquetaBalanzaCorta(f.estadoBalanza);
+      acciones += htmlSwitchFila(activo);
+      const balanzaTxt = mayus(f.estadoBalanza).replace(/_/g, ' ');
       const fechaHora = `${f.fecha} ${f.hora}`.trim();
+      tr.dataset.id = String(f.id);
       tr.innerHTML = `
         ${tdCelda(String(f.id))}
         ${tdCelda(mayus(f.nombreChofer))}
@@ -312,12 +333,124 @@ export function montarPesaje(host: HTMLElement): () => void {
         ${tdCelda(String(f.pesoBruto))}
         ${tdCelda(String(f.tara))}
         ${tdCelda(String(f.pesoNeto))}
-        <td class="tabla-celda-estado" title="${escapeAttr(activo ? 'ACTIVO' : 'INACTIVO')}"><span class="estado-etiqueta estado-etiqueta--${activo ? 'activo' : 'inactivo'}">${activo ? 'ACT.' : 'INA.'}</span></td>
-        <td class="tabla-celda-estado" title="${escapeAttr(f.estadoBalanza.replace(/_/g, ' '))}"><span class="estado-etiqueta estado-etiqueta--${enProceso ? 'proceso' : 'finalizado'}">${balanzaTxt}</span></td>
+        <td class="tabla-celda-estado"><span class="estado-etiqueta estado-etiqueta--${activo ? 'activo' : 'inactivo'}">${activo ? 'ACTIVO' : 'INACTIVO'}</span></td>
+        <td class="tabla-celda-estado"><span class="estado-etiqueta estado-etiqueta--${enProceso ? 'proceso' : 'finalizado'}">${escapeHtml(balanzaTxt)}</span></td>
         <td class="tabla-celda-acciones">${acciones}</td>
       `;
+      const sw = tr.querySelector('.abm-switch-input') as HTMLInputElement;
+      sw.addEventListener('click', (ev) => ev.stopPropagation());
+      sw.addEventListener('change', () => {
+        void cambiarEstadoGrilla(f, sw);
+      });
+      if (pesajeEdicionId === f.id) tr.classList.add('seleccionado');
       body.appendChild(tr);
     }
+  };
+
+  const cambiarEstadoGrilla = async (fila: Fila, sw: HTMLInputElement) => {
+    const activo = sw.checked;
+    if (!activo) {
+      if (!window.confirm('Se cambiará el estado a INACTIVO. ¿Continuar?')) {
+        sincronizarSwitchEstado(sw, true);
+        return;
+      }
+    } else if (fila.estado.toUpperCase() !== 'ACTIVO') {
+      if (!window.confirm('¿Reactivar este pesaje?')) {
+        sincronizarSwitchEstado(sw, false);
+        return;
+      }
+    }
+    const r = (await PesajeCambiarEstado(fila.id, activo)) as AccionPesaje;
+    if (!r.ok) {
+      sincronizarSwitchEstado(sw, !activo);
+      if (r.aviso) mostrarAviso(r.aviso.titulo, r.aviso.mensaje);
+      return;
+    }
+    await recargarGrilla();
+  };
+
+  const marcarFilaGrilla = (id: number) => {
+    qs('#tabla-body').querySelectorAll('tr').forEach((tr) => {
+      tr.classList.toggle('seleccionado', Number((tr as HTMLTableRowElement).dataset.id) === id && id > 0);
+    });
+  };
+
+  const setModoEdicion = (id: number) => {
+    pesajeEdicionId = id;
+    const btn = qs<HTMLButtonElement>('#btn-guardar');
+    btn.textContent = id > 0 ? 'GUARDAR CAMBIOS' : 'REGISTRAR PESAJE';
+    qs('#btn-cancelar-edicion')?.classList.toggle('oculto', id <= 0);
+  };
+
+  const restablecerFormularioNuevo = async () => {
+    const primer = (selId: string) => {
+      const el = qs<HTMLSelectElement>(`#${selId}`);
+      if (el.options.length > 0) el.selectedIndex = 0;
+    };
+    primer('sel-vehiculo');
+    primer('sel-chofer');
+    primer('sel-proveedor');
+    primer('sel-producto');
+    primer('sel-origen');
+    primer('sel-destino');
+    qs<HTMLInputElement>('#costo').value = '0';
+    qs<HTMLInputElement>('#flete').value = '0';
+    taraManual = false;
+    qs<HTMLInputElement>('#tara-manual').checked = false;
+    qs<HTMLInputElement>('#tara').readOnly = true;
+    await alCambiarVehiculo();
+    await alCambiarChofer();
+  };
+
+  const cancelarEdicion = () => {
+    setModoEdicion(0);
+    marcarFilaGrilla(0);
+    void restablecerFormularioNuevo().then(() => {
+      void PesajeCancelarEdicion().then((est) => aplicarEstado(est as EstadoPane));
+    });
+  };
+
+  const aplicarEdicionEnFormulario = async (id: number) => {
+    let det: {
+      id: number;
+      vehiculoId: number;
+      choferId?: number;
+      proveedorId?: number;
+      productoId?: number;
+      origenId?: number;
+      destinoId?: number;
+      pesoBruto: number;
+      tara: number;
+      costoBs: number;
+      fleteBsPendiente: number;
+    };
+    try {
+      det = (await PesajeCargarEdicion(id)) as typeof det;
+    } catch (e) {
+      mostrarAviso('Pesaje', String(e));
+      return;
+    }
+    const sel = (idSel: string, val?: number) => {
+      const el = qs<HTMLSelectElement>(`#${idSel}`);
+      if (val && val > 0) el.value = String(val);
+    };
+    sel('sel-vehiculo', det.vehiculoId);
+    sel('sel-chofer', det.choferId);
+    sel('sel-proveedor', det.proveedorId);
+    sel('sel-producto', det.productoId);
+    sel('sel-origen', det.origenId);
+    sel('sel-destino', det.destinoId);
+    qs<HTMLInputElement>('#costo').value = String(det.costoBs ?? 0);
+    qs<HTMLInputElement>('#flete').value = String(det.fleteBsPendiente ?? 0);
+    qs<HTMLInputElement>('#tara').value = String(det.tara ?? 0);
+    taraManual = det.tara > 0;
+    qs<HTMLInputElement>('#tara-manual').checked = taraManual;
+    qs<HTMLInputElement>('#tara').readOnly = !taraManual;
+    await alCambiarVehiculo();
+    await alCambiarChofer();
+    void PesajeEstado().then((est) => aplicarEstado(est as EstadoPane));
+    setModoEdicion(id);
+    marcarFilaGrilla(id);
   };
 
   qs('#btn-conectar').addEventListener('click', () => {
@@ -350,6 +483,8 @@ export function montarPesaje(host: HTMLElement): () => void {
     void PesajeActualizarTara(t).then((est) => aplicarEstado(est as EstadoPane));
   });
 
+  qs('#btn-cancelar-edicion').addEventListener('click', () => cancelarEdicion());
+
   qs('#btn-guardar').addEventListener('click', () => {
     const vehiculoId = Number(qs<HTMLSelectElement>('#sel-vehiculo').value);
     const payload = {
@@ -365,9 +500,15 @@ export function montarPesaje(host: HTMLElement): () => void {
       fleteBsPendiente: parseInt(qs<HTMLInputElement>('#flete').value, 10) || 0,
       taraManual,
     };
-    void PesajeRegistrar(payload).then(async (r) => {
+    const guardar = pesajeEdicionId > 0
+      ? PesajeActualizarRegistro({ ...payload, id: pesajeEdicionId })
+      : PesajeRegistrar(payload);
+    void guardar.then(async (r) => {
       manejarAccion(r as AccionPesaje);
-      if ((r as AccionPesaje).ok) await recargarGrilla();
+      if ((r as AccionPesaje).ok) {
+        setModoEdicion(0);
+        await recargarGrilla();
+      }
     });
   });
 
@@ -376,15 +517,9 @@ export function montarPesaje(host: HTMLElement): () => void {
     if (!btn) return;
     const id = Number(btn.dataset.id);
     const act = btn.dataset.act;
-    if (act === 'estado' && window.confirm('Se cambiará el estado a INACTIVO. ¿Continuar?')) {
-      void PesajeCambiarEstado(id, false).then(async (r) => {
-        if ((r as AccionPesaje).ok) await recargarGrilla();
-      });
-    }
-    if (act === 'activar' && window.confirm('¿Reactivar este pesaje?')) {
-      void PesajeCambiarEstado(id, true).then(async (r) => {
-        if ((r as AccionPesaje).ok) await recargarGrilla();
-      });
+    if (act === 'editar') {
+      void aplicarEdicionEnFormulario(id);
+      return;
     }
     if (act === 'finalizar') {
       if (!window.confirm(`¿Cerrar el pesaje #${id} como FINALIZADO?`)) return;
@@ -424,12 +559,14 @@ export function montarPesaje(host: HTMLElement): () => void {
       if (!rapidoActual) return;
       qs('#rapido-titulo').textContent = rapidoActual.titulo;
       const cont = qs('#rapido-campos');
-      cont.innerHTML = rapidoActual.campos
-        .map(
-          (c, i) =>
-            `<label class="pesaje-campo"><span class="etiqueta-mini">${c}</span><input class="text-field" data-idx="${i}" value="${escapeAttr(rapidoActual!.defaults[i])}" /></label>`,
-        )
+      const def = rapidoActual;
+      cont.innerHTML = def.campos
+        .map((c, i) => {
+          const ancho = c.toLowerCase().includes('descripción') ? ' data-ancho-completo="1"' : '';
+          return `<label class="pesaje-campo"${ancho}><span class="etiqueta-mini">${c}</span><input class="text-field" data-idx="${i}" value="${escapeAttr(def.defaults[i])}" /></label>`;
+        })
         .join('');
+      aplicarLayoutDialogoCampos(cont, def.campos.length, dlgRapido);
       dlgRapido.showModal();
     });
   });
@@ -485,13 +622,6 @@ function opcionId(root: HTMLElement, selId: string): number | undefined {
 
 function mayus(s: string): string {
   return (s || '').toUpperCase();
-}
-
-function etiquetaBalanzaCorta(estado: string): string {
-  const u = (estado || '').toUpperCase();
-  if (u === 'EN_PROCESO') return 'PROC.';
-  if (u === 'FINALIZADO') return 'FIN.';
-  return mayus(estado).replace(/_/g, ' ').slice(0, 8);
 }
 
 function tdCelda(texto: string, clases = ''): string {

@@ -6,6 +6,28 @@ export function claseAnchoDialogo(ancho: AnchoDialogo): string {
   return `dlg-ancho-${ancho}`;
 }
 
+/** Misma lógica que ABM (usuarios, choferes, etc.). */
+export function columnasDialogoPorCampos(visibles: number): 2 | 3 {
+  return visibles > 7 ? 3 : 2;
+}
+
+export function anchoDialogoPorCampos(visibles: number): AnchoDialogo {
+  const cols = columnasDialogoPorCampos(visibles);
+  if (cols === 3) return 'amplio';
+  if (visibles <= 3) return 'compacto';
+  return 'medio';
+}
+
+export function aplicarLayoutDialogoCampos(
+  contenedor: HTMLElement,
+  cantidadCampos: number,
+  dialog: HTMLDialogElement,
+): void {
+  const cols = columnasDialogoPorCampos(cantidadCampos);
+  contenedor.className = `abm-dialog-grid abm-dialog-grid--${cols}`;
+  fijarAnchoDialogo(dialog, anchoDialogoPorCampos(cantidadCampos));
+}
+
 export function htmlAccionesDialogo(contenido: string): string {
   return `<div class="dlg-acciones">${contenido}</div>`;
 }

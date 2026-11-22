@@ -38,6 +38,8 @@ export function GenerarReportePdf(arg1:main.FiltroReporteDTO):Promise<main.PdfRe
 
 export function InicioResumen():Promise<main.ResumenInicioDTO>;
 
+export function PesajeActualizarRegistro(arg1:main.ActualizarPesajeDTO):Promise<main.AccionDTO>;
+
 export function PesajeActualizarTara(arg1:number):Promise<main.EstadoPesajePaneDTO>;
 
 export function PesajeAlternarBalanza():Promise<main.AccionDTO>;
@@ -46,9 +48,13 @@ export function PesajeBoleta(arg1:number):Promise<main.AccionDTO>;
 
 export function PesajeCambiarEstado(arg1:number,arg2:boolean):Promise<main.AccionDTO>;
 
+export function PesajeCancelarEdicion():Promise<main.EstadoPesajePaneDTO>;
+
 export function PesajeCapturarBruto():Promise<main.AccionDTO>;
 
 export function PesajeCapturarTara():Promise<main.AccionDTO>;
+
+export function PesajeCargarEdicion(arg1:number):Promise<main.PesajeEdicionDTO>;
 
 export function PesajeCerrar():Promise<void>;
 

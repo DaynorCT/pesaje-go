@@ -74,6 +74,10 @@ export function InicioResumen() {
   return window['go']['main']['App']['InicioResumen']();
 }
 
+export function PesajeActualizarRegistro(arg1) {
+  return window['go']['main']['App']['PesajeActualizarRegistro'](arg1);
+}
+
 export function PesajeActualizarTara(arg1) {
   return window['go']['main']['App']['PesajeActualizarTara'](arg1);
 }
@@ -90,12 +94,20 @@ export function PesajeCambiarEstado(arg1, arg2) {
   return window['go']['main']['App']['PesajeCambiarEstado'](arg1, arg2);
 }
 
+export function PesajeCancelarEdicion() {
+  return window['go']['main']['App']['PesajeCancelarEdicion']();
+}
+
 export function PesajeCapturarBruto() {
   return window['go']['main']['App']['PesajeCapturarBruto']();
 }
 
 export function PesajeCapturarTara() {
   return window['go']['main']['App']['PesajeCapturarTara']();
+}
+
+export function PesajeCargarEdicion(arg1) {
+  return window['go']['main']['App']['PesajeCargarEdicion'](arg1);
 }
 
 export function PesajeCerrar() {

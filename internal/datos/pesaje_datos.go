@@ -51,6 +51,22 @@ type FilaPesaje struct {
 func (f FilaPesaje) Fecha() string { return SoloFecha(f.FechaCreacion) }
 func (f FilaPesaje) Hora() string  { return SoloHora(f.FechaCreacion) }
 
+// PesajeEdicion datos completos de un pesaje para cargar el formulario.
+type PesajeEdicion struct {
+	ID                 int64
+	VehiculoID         int64
+	ChoferID           *int64
+	ProveedorID        *int64
+	ProductoID         *int64
+	OrigenID           *int64
+	DestinoID          *int64
+	PesoBruto          int
+	Tara               int
+	CostoBs            int
+	FleteBsPendiente   int
+	EstadoBalanza      string
+}
+
 // NuevoPesaje datos para insertar un pesaje desde la pantalla operativa.
 type NuevoPesaje struct {
 	VehiculoID         int64
@@ -204,6 +220,70 @@ func ListarPesajes(ctx context.Context, db *sql.DB, limite int) ([]FilaPesaje, e
 		out = append(out, f)
 	}
 	return out, rows.Err()
+}
+
+func ObtenerPesajeEdicion(ctx context.Context, db *sql.DB, id int64) (PesajeEdicion, bool, error) {
+	var p PesajeEdicion
+	var chofer, prov, prod, orig, dest sql.NullInt64
+	var bruto, tara, costo, flete sql.NullInt64
+	err := db.QueryRowContext(ctx, `
+SELECT vehiculo_id, chofer_id, proveedor_id, producto_id, id_origen, id_destino,
+       peso_bruto, tara, costo_bs, flete_bs_pendiente, estado_balanza
+FROM pesajes WHERE id = ?`, id).Scan(
+		&p.VehiculoID, &chofer, &prov, &prod, &orig, &dest,
+		&bruto, &tara, &costo, &flete, &p.EstadoBalanza,
+	)
+	if err == sql.ErrNoRows {
+		return p, false, nil
+	}
+	if err != nil {
+		return p, false, err
+	}
+	p.ID = id
+	p.ChoferID = nullInt64Ptr(chofer)
+	p.ProveedorID = nullInt64Ptr(prov)
+	p.ProductoID = nullInt64Ptr(prod)
+	p.OrigenID = nullInt64Ptr(orig)
+	p.DestinoID = nullInt64Ptr(dest)
+	if bruto.Valid {
+		p.PesoBruto = int(bruto.Int64)
+	}
+	if tara.Valid {
+		p.Tara = int(tara.Int64)
+	}
+	if costo.Valid {
+		p.CostoBs = int(costo.Int64)
+	}
+	if flete.Valid {
+		p.FleteBsPendiente = int(flete.Int64)
+	}
+	return p, true, nil
+}
+
+func nullInt64Ptr(v sql.NullInt64) *int64 {
+	if !v.Valid {
+		return nil
+	}
+	id := v.Int64
+	return &id
+}
+
+func ActualizarPesajeRegistro(ctx context.Context, db *sql.DB, p PesajeEdicion, usuarioID int64) error {
+	neto := p.PesoBruto - p.Tara
+	_, err := db.ExecContext(ctx, `
+UPDATE pesajes SET
+  vehiculo_id = ?, chofer_id = ?, proveedor_id = ?, producto_id = ?,
+  id_origen = ?, id_destino = ?,
+  peso_bruto = ?, tara = ?, peso_neto = ?,
+  costo_bs = ?, flete_bs_pendiente = ?,
+  usuario_modificacion = ?, fecha_modificacion = ?
+WHERE id = ?`,
+		p.VehiculoID, nullableID(p.ChoferID), nullableID(p.ProveedorID), nullableID(p.ProductoID),
+		nullableID(p.OrigenID), nullableID(p.DestinoID),
+		p.PesoBruto, p.Tara, neto, p.CostoBs, p.FleteBsPendiente,
+		usuarioID, Ahora(), p.ID,
+	)
+	return err
 }
 
 func GuardarPesaje(ctx context.Context, db *sql.DB, p NuevoPesaje, usuarioID int64) (int64, error) {

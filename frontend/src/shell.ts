@@ -62,7 +62,7 @@ export function montarShell(
             </div>
           </div>
           ${
-            IDS_ABM.includes(mod.id)
+            IDS_ABM.includes(mod.id) || mod.id === 'pesaje'
               ? ''
               : `<h1 class="titulo-modulo shell-titulo">${mod.titulo}</h1>`
           }
@@ -212,7 +212,7 @@ function pintarContenido(host: HTMLElement, mod: ReturnType<typeof porId>): (() 
     return montarBoletaConfig(host);
   }
   if (mod.id === 'pesaje') {
-    host.className = 'shell-contenido shell-contenido-pesaje';
+    host.className = 'shell-contenido shell-contenido-abm';
     host.replaceChildren();
     return montarPesaje(host);
   }

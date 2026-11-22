@@ -158,6 +158,40 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class ActualizarPesajeDTO {
+	    id: number;
+	    vehiculoId: number;
+	    choferId?: number;
+	    proveedorId?: number;
+	    productoId?: number;
+	    origenId?: number;
+	    destinoId?: number;
+	    pesoBruto: number;
+	    tara: number;
+	    costoBs: number;
+	    fleteBsPendiente: number;
+	    taraManual: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new ActualizarPesajeDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.vehiculoId = source["vehiculoId"];
+	        this.choferId = source["choferId"];
+	        this.proveedorId = source["proveedorId"];
+	        this.productoId = source["productoId"];
+	        this.origenId = source["origenId"];
+	        this.destinoId = source["destinoId"];
+	        this.pesoBruto = source["pesoBruto"];
+	        this.tara = source["tara"];
+	        this.costoBs = source["costoBs"];
+	        this.fleteBsPendiente = source["fleteBsPendiente"];
+	        this.taraManual = source["taraManual"];
+	    }
+	}
 	
 	export class BalanzaConfigDTO {
 	    puertoCom: string;
@@ -383,6 +417,40 @@ export namespace main {
 	        this.ruta = source["ruta"];
 	        this.mensaje = source["mensaje"];
 	        this.esError = source["esError"];
+	    }
+	}
+	export class PesajeEdicionDTO {
+	    id: number;
+	    vehiculoId: number;
+	    choferId?: number;
+	    proveedorId?: number;
+	    productoId?: number;
+	    origenId?: number;
+	    destinoId?: number;
+	    pesoBruto: number;
+	    tara: number;
+	    costoBs: number;
+	    fleteBsPendiente: number;
+	    estadoBalanza: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PesajeEdicionDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.vehiculoId = source["vehiculoId"];
+	        this.choferId = source["choferId"];
+	        this.proveedorId = source["proveedorId"];
+	        this.productoId = source["productoId"];
+	        this.origenId = source["origenId"];
+	        this.destinoId = source["destinoId"];
+	        this.pesoBruto = source["pesoBruto"];
+	        this.tara = source["tara"];
+	        this.costoBs = source["costoBs"];
+	        this.fleteBsPendiente = source["fleteBsPendiente"];
+	        this.estadoBalanza = source["estadoBalanza"];
 	    }
 	}
 	export class PesajeOpcionesDTO {
