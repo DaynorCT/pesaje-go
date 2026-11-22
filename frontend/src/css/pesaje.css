@@ -261,9 +261,7 @@
     color: #5f6c7b;
 }
 
-.boton-info:hover {
-    background-color: #f6ece6;
-}
+/* .boton-info hover: ver app.css (tema --pesaje-info) */
 
 .boton-info:disabled {
     opacity: 0.5;

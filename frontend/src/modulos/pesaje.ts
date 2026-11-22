@@ -33,6 +33,7 @@ import {
   htmlSwitchFila,
   sincronizarSwitchEstado,
 } from '../tablas-acciones';
+import { iconoModuloHTML } from '../iconos-modulo';
 
 type Opcion = { id: number; label: string };
 
@@ -100,9 +101,23 @@ export function montarPesaje(host: HTMLElement): () => void {
           <div class="display-peso"><span class="valor-peso" id="pesaje-vivo">0 kg</span></div>
           <div class="separador-horizontal"></div>
           <div class="pesaje-acciones-balanza">
-            <div class="pesaje-col-conexion">
-              <button type="button" class="boton-secundario" id="btn-conectar">Conectar</button>
-              <span class="etiqueta-mini">Conexión</span>
+            <div class="pesaje-col-conexion" id="pesaje-col-conexion">
+              <div class="pesaje-conexion-fila">
+                <span class="pesaje-icono-balanza" id="pesaje-icono-balanza" aria-hidden="true"></span>
+                <label class="abm-switch pesaje-switch-balanza" id="pesaje-switch-balanza" data-tip="Conectar balanza">
+                  <input
+                    type="checkbox"
+                    class="abm-switch-input"
+                    id="sw-balanza"
+                    role="switch"
+                    aria-label="Conexión balanza"
+                    aria-checked="false"
+                  />
+                  <span class="abm-switch-pista"></span>
+                </label>
+              </div>
+              <span class="etiqueta-mini pesaje-leyenda-conexion">Conexión</span>
+              <span class="estado-etiqueta estado-etiqueta--inactivo" id="estado-conexion">DESCONECTADO</span>
             </div>
             <button type="button" class="boton-primario" id="btn-cap-bruto" disabled>Cap. peso</button>
             <button type="button" class="boton-info" id="btn-cap-tara" disabled>Cap. tara</button>
@@ -180,9 +195,23 @@ export function montarPesaje(host: HTMLElement): () => void {
     aviso.mostrar(titulo, mensaje);
   };
 
+  const sincronizarConexionBalanza = (conectado: boolean) => {
+    const sw = qs<HTMLInputElement>('#sw-balanza');
+    const tip = conectado ? 'Desconectar balanza' : 'Conectar balanza';
+    sw.checked = conectado;
+    sw.setAttribute('aria-checked', conectado ? 'true' : 'false');
+    sw.setAttribute('aria-label', conectado ? 'Balanza conectada' : 'Balanza desconectada');
+    const label = qs<HTMLElement>('#pesaje-switch-balanza');
+    label.dataset.tip = tip;
+    qs('#pesaje-col-conexion').classList.toggle('pesaje-col-conexion--conectada', conectado);
+    const pill = qs('#estado-conexion');
+    pill.textContent = conectado ? 'CONECTADO' : 'DESCONECTADO';
+    pill.className = `estado-etiqueta ${conectado ? 'estado-etiqueta--activo' : 'estado-etiqueta--inactivo'}`;
+  };
+
   const aplicarEstado = (e: EstadoPane) => {
     qs('#pesaje-vivo').textContent = `${e.pesoVivo.toLocaleString('es-BO')} kg`;
-    qs('#btn-conectar').textContent = e.textoConectar;
+    sincronizarConexionBalanza(e.balanzaConectada);
     qs<HTMLButtonElement>('#btn-cap-bruto').disabled = !e.puedeCapturar;
     qs<HTMLButtonElement>('#btn-cap-tara').disabled = !e.puedeCapturar;
     qs('#res-bruto').textContent = String(e.pesoBruto);
@@ -453,8 +482,23 @@ export function montarPesaje(host: HTMLElement): () => void {
     marcarFilaGrilla(id);
   };
 
-  qs('#btn-conectar').addEventListener('click', () => {
-    void PesajeAlternarBalanza().then((r) => manejarAccion(r as AccionPesaje));
+  const iconoBalanza = qs('#pesaje-icono-balanza');
+  iconoBalanza.innerHTML = iconoModuloHTML('balanza').replace(/\bwidth="20"/, 'width="18"').replace(/\bheight="20"/, 'height="18"');
+
+  const swBalanza = qs<HTMLInputElement>('#sw-balanza');
+  swBalanza.addEventListener('click', (ev) => ev.stopPropagation());
+  swBalanza.addEventListener('change', () => {
+    const previo = !swBalanza.checked;
+    void PesajeAlternarBalanza().then(async (r) => {
+      const acc = r as AccionPesaje;
+      if (acc.estadoPesaje) aplicarEstado(acc.estadoPesaje);
+      else {
+        const est = (await PesajeEstado()) as EstadoPane;
+        aplicarEstado(est);
+      }
+      if (acc.aviso) mostrarAviso(acc.aviso.titulo, acc.aviso.mensaje);
+      if (!acc.ok && !acc.estadoPesaje) sincronizarConexionBalanza(previo);
+    });
   });
   qs('#btn-cap-bruto').addEventListener('click', () => {
     void PesajeCapturarBruto().then((r) => manejarAccion(r as AccionPesaje));
