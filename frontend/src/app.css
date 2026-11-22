@@ -280,6 +280,9 @@ input.password-field:focus {
   align-items: center;
   gap: 12px;
   padding: 10px 16px 6px;
+  overflow: visible;
+  position: relative;
+  z-index: 10;
 }
 
 .shell-logo {
@@ -293,7 +296,12 @@ input.password-field:focus {
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  overflow-x: auto;
+  overflow: visible;
+}
+
+.shell-menu-ancla {
+  position: relative;
+  display: inline-block;
 }
 
 .shell-item-menu {
@@ -331,9 +339,18 @@ input.password-field:focus {
 .shell-submenu {
   position: absolute;
   left: 0;
-  top: 100%;
-  min-width: 180px;
-  z-index: 25;
+  right: auto;
+  top: calc(100% + 4px);
+  min-width: 220px;
+  z-index: 40;
+}
+
+.shell-submenu .menu-encabezado {
+  margin: 0;
+  padding: 4px 10px 6px;
+  color: var(--pesaje-texto-secundario);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .shell-titulo {

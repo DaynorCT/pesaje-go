@@ -17,10 +17,19 @@ import {
 export function montarShell(
   contenedor: HTMLElement,
   sesionInicial?: NonNullable<LoginRespuesta['usuario']>,
-): void {
+): () => void {
   let modulo: ModuloId = 'inicio';
   let sesion = sesionInicial;
   let limpiarModulo: (() => void) | undefined;
+
+  const cerrarMenusDocumento = (ev: MouseEvent) => {
+    const nav = contenedor.querySelector('#shell-nav');
+    if (!nav) return;
+    const t = ev.target as HTMLElement | null;
+    if (t?.closest('.shell-submenu, .shell-menu-ancla')) return;
+    cerrarSubmenus(nav);
+  };
+  document.addEventListener('click', cerrarMenusDocumento);
 
   const render = () => {
     limpiarModulo?.();
@@ -55,7 +64,13 @@ export function montarShell(
     });
 
     limpiarModulo = pintarContenido(contenedor.querySelector('#shell-contenido') as HTMLElement, mod);
-    enlazarUsuario(contenedor, sesion);
+    enlazarUsuario(contenedor, sesion, destruir);
+  };
+
+  const destruir = () => {
+    document.removeEventListener('click', cerrarMenusDocumento);
+    limpiarModulo?.();
+    cerrarSubmenus(document);
   };
 
   if (!sesion) {
@@ -66,6 +81,8 @@ export function montarShell(
   } else {
     render();
   }
+
+  return destruir;
 }
 
 function pintarNav(
@@ -76,63 +93,71 @@ function pintarNav(
   const nav = root.querySelector('#shell-nav') as HTMLElement;
   nav.innerHTML = '';
   for (const m of principales()) {
+    const hijos = m.id === 'catalogo' ? deGrupo('Catálogo') : m.id === 'config' ? deGrupo('Configuración') : [];
+    const estaActivo =
+      activo === m.id || (!!porId(activo)?.grupo && porId(activo)?.grupo === m.titulo);
+
+    const ancla = document.createElement('div');
+    ancla.className = 'shell-menu-ancla';
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'item-menu shell-item-menu';
     btn.textContent = m.titulo;
-    const hijos = m.id === 'catalogo' ? deGrupo('Catálogo') : m.id === 'config' ? deGrupo('Configuración') : [];
-    const estaActivo =
-      activo === m.id || (!!porId(activo)?.grupo && porId(activo)?.grupo === m.titulo);
     if (estaActivo) btn.classList.add('activo');
+    ancla.appendChild(btn);
 
     if (hijos.length > 0) {
       btn.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        alternarSubmenu(nav, btn, m.titulo, hijos, alElegir);
+        alternarSubmenu(ancla, m.titulo, hijos, alElegir);
       });
     } else {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
         cerrarSubmenus(nav);
         if (m.id !== 'catalogo' && m.id !== 'config') alElegir(m.id);
       });
     }
-    nav.appendChild(btn);
+    nav.appendChild(ancla);
   }
-  document.addEventListener(
-    'click',
-    () => cerrarSubmenus(nav),
-    { once: true },
-  );
 }
 
 function alternarSubmenu(
-  nav: HTMLElement,
   ancla: HTMLElement,
   titulo: string,
   hijos: ReturnType<typeof deGrupo>,
   alElegir: (id: ModuloId) => void,
 ): void {
-  cerrarSubmenus(nav);
+  const abierto = ancla.querySelector('.shell-submenu');
+  document.querySelectorAll('.shell-submenu').forEach((el) => el.remove());
+  if (abierto) {
+    return;
+  }
   const pop = document.createElement('div');
   pop.className = 'menu-flotante shell-submenu';
-  pop.innerHTML = `<p class="grupo-menu">${titulo}</p>`;
+  const enc = document.createElement('p');
+  enc.className = 'subtitulo menu-encabezado';
+  enc.textContent = titulo;
+  pop.appendChild(enc);
+  const sep = document.createElement('hr');
+  pop.appendChild(sep);
   for (const h of hijos) {
     const b = document.createElement('button');
     b.type = 'button';
+    b.className = 'item-menu';
     b.textContent = h.titulo;
     b.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      pop.remove();
+      cerrarSubmenus(document);
       alElegir(h.id);
     });
     pop.appendChild(b);
   }
-  ancla.style.position = 'relative';
   ancla.appendChild(pop);
 }
 
-function cerrarSubmenus(nav: HTMLElement): void {
-  nav.querySelectorAll('.shell-submenu').forEach((el) => el.remove());
+function cerrarSubmenus(root: ParentNode): void {
+  root.querySelectorAll('.shell-submenu').forEach((el) => el.remove());
 }
 
 function pintarContenido(host: HTMLElement, mod: ReturnType<typeof porId>): (() => void) | undefined {
@@ -193,6 +218,7 @@ function pintarContenido(host: HTMLElement, mod: ReturnType<typeof porId>): (() 
 function enlazarUsuario(
   root: HTMLElement,
   sesion: NonNullable<LoginRespuesta['usuario']> | undefined,
+  alDestruirShell?: () => void,
 ): void {
   const btn = root.querySelector('#btn-usuario') as HTMLButtonElement;
   const menu = root.querySelector('#menu-usuario') as HTMLDivElement;
@@ -228,6 +254,7 @@ function enlazarUsuario(
         );
       }
       if (u === 'salir' && window.confirm('¿Seguro que desea cerrar sesión?')) {
+        alDestruirShell?.();
         CerrarSesion();
         import('./login').then(({ montarLogin }) => montarLogin(host));
       }
