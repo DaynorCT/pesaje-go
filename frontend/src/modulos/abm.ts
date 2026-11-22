@@ -262,7 +262,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
       tr.innerHTML =
         celdas +
         `<td class="abm-celda-acciones">
-          <button type="button" class="abm-btn-editar" title="Editar" aria-label="Editar">${ICONO_LAPIZ}</button>
+          <button type="button" class="abm-btn-editar" data-tip="Editar ${entLabel}" aria-label="Editar ${entLabel}">${ICONO_LAPIZ}</button>
           <label class="abm-switch" data-estado="${estadoTxt}">
             <input type="checkbox" class="abm-switch-input" role="switch" ${activo ? 'checked' : ''} aria-label="${estadoTxt}" aria-checked="${activo ? 'true' : 'false'}" />
             <span class="abm-switch-pista"></span>
