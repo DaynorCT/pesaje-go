@@ -16,7 +16,7 @@ S6. Reutilizar `%APPDATA%\SistemaPesaje` (y paths equivalentes): misma `pesaje.d
 | ID | Spec | Tarea | Ruta | Commit |
 |----|------|-------|------|--------|
 | T1 | S1,S3,S4,S5 | Scaffold Wails, copiar assets/CSS (web), tema CSS variables desde `Tema.java`, README build Windows | pesaje-go/ | `cd970ae` |
-| T2 | S2,S6 | SQLite + esquema + seed admin + tests auth (paridad `AuthServiceTest`) | inline | `3264f57` |
+| T2 | S2,S6 | SQLite + esquema + seed admin + tests auth (paridad `AuthServiceTest`) | inline | `21a3e5e` |
 | T3 | S2,S3 | Pantalla login (HTML/CSS paridad `LoginPane` + logo) | inline | |
 | T4 | S2,S3 | Modo integrado 480×680, always-on-top, barra superior (paridad `ModoIntegradoPane`) | inline | |
 | T5 | S2,S3 | Shell + navegación + menú usuario (paridad `ShellPane`/`Navegacion`) | inline | |
