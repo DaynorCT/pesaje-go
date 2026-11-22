@@ -41,7 +41,20 @@ function columnasDialogo(camposVisibles: number): 2 | 3 {
 }
 
 function etiquetaEstadoSwitch(activo: boolean): string {
-  return activo ? 'Activo' : 'Inactivo';
+  return activo ? 'ACTIVO' : 'INACTIVO';
+}
+
+function htmlCeldaEstado(_estado: string, activo: boolean): string {
+  const texto = etiquetaEstadoSwitch(activo);
+  const clase = activo ? 'estado-etiqueta--activo' : 'estado-etiqueta--inactivo';
+  return `<td class="abm-celda-estado"><span class="estado-etiqueta ${clase}">${texto}</span></td>`;
+}
+
+function actualizarTextoEstado(tr: HTMLTableRowElement, _estado: string, activo: boolean): void {
+  const el = tr.querySelector('.estado-etiqueta');
+  if (!el) return;
+  el.textContent = etiquetaEstadoSwitch(activo);
+  el.className = `estado-etiqueta ${activo ? 'estado-etiqueta--activo' : 'estado-etiqueta--inactivo'}`;
 }
 
 function sincronizarSwitchUI(input: HTMLInputElement, activo: boolean): void {
@@ -86,7 +99,8 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
 
   const head = host.querySelector('#abm-head') as HTMLTableRowElement;
   head.innerHTML =
-    cfg.columnas.map((c) => `<th>${c.titulo}</th>`).join('') + '<th class="abm-th-acciones">Acciones</th>';
+    cfg.columnas.map((c) => `<th>${c.titulo}</th>`).join('') +
+    '<th class="abm-th-estado">Estado</th><th class="abm-th-acciones">Acciones</th>';
 
   const camposHost = host.querySelector('#abm-campos') as HTMLElement;
   camposHost.innerHTML = cfg.campos
@@ -239,6 +253,8 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
     }
     fila.estado = nuevo;
     sincronizarSwitchUI(input, activo);
+    const tr = input.closest('tr');
+    if (tr) actualizarTextoEstado(tr, nuevo, activo);
     if (seleccionId === fila.id && dialog.open) {
       const estEl = host.querySelector('#campo-estado') as HTMLSelectElement | null;
       if (estEl) estEl.value = nuevo;
@@ -260,6 +276,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
       const estadoTxt = etiquetaEstadoSwitch(activo);
       tr.innerHTML =
         celdas +
+        htmlCeldaEstado(f.estado, activo) +
         `<td class="abm-celda-acciones">
           <button type="button" class="abm-btn-editar" data-tip="Editar ${entLabel}" aria-label="Editar ${entLabel}">${ICONO_LAPIZ}</button>
           <label class="abm-switch" data-estado="${estadoTxt}">

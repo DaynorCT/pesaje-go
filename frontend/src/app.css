@@ -598,16 +598,70 @@ input.password-field:focus {
   grid-column: 1 / -1;
 }
 
-.abm-th-acciones {
-  width: 1%;
+#abm-tabla th.abm-th-estado,
+#abm-tabla td.abm-celda-estado {
+  min-width: 96px;
+  width: 96px;
+  padding-right: 24px;
   white-space: nowrap;
+  vertical-align: middle;
+}
+
+.abm-celda-estado {
+  text-align: left;
+}
+
+/* Etiquetas de estado (ABM, pesaje) */
+.estado-etiqueta {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+  border-radius: 4px;
+  white-space: nowrap;
+  border: 1px solid var(--pesaje-borde);
+  box-shadow: 0 2px 8px rgba(31, 41, 51, 0.06);
+}
+
+.estado-etiqueta--activo {
+  color: var(--pesaje-exito);
+  border-color: var(--pesaje-exito-suave);
+  background: var(--pesaje-exito-suave);
+}
+
+.estado-etiqueta--inactivo {
+  color: var(--pesaje-primario);
+  border-color: var(--pesaje-primario-suave);
+  background: var(--pesaje-primario-suave);
+}
+
+.estado-etiqueta--proceso {
+  color: #92400e;
+  border-color: #fef3c7;
+  background: #fef3c7;
+}
+
+.estado-etiqueta--finalizado {
+  color: #1e40af;
+  border-color: #dbeafe;
+  background: #dbeafe;
+}
+
+#abm-tabla th.abm-th-acciones,
+#abm-tabla td.abm-celda-acciones {
+  min-width: 88px;
+  width: 88px;
+  padding-left: 20px;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .abm-celda-acciones {
   display: flex;
   align-items: center;
-  gap: 8px;
-  white-space: nowrap;
+  justify-content: flex-start;
+  gap: 10px;
 }
 
 .abm-btn-editar {
@@ -669,47 +723,6 @@ input.password-field:focus {
   height: 14px;
   flex-shrink: 0;
   vertical-align: middle;
-}
-
-.abm-switch::after {
-  content: attr(data-estado);
-  position: absolute;
-  right: calc(100% + 6px);
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 2px 7px;
-  font-size: 10px;
-  font-weight: 500;
-  line-height: 1.3;
-  color: var(--pesaje-texto);
-  background: var(--pesaje-tarjeta);
-  border: 1px solid var(--pesaje-borde);
-  border-radius: 4px;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.12s ease, visibility 0.12s ease;
-  box-shadow: 0 2px 8px rgba(31, 41, 51, 0.08);
-  z-index: 3;
-}
-
-.abm-switch:hover::after,
-.abm-switch:focus-within::after {
-  opacity: 1;
-  visibility: visible;
-}
-
-.abm-switch[data-estado='Activo']::after {
-  color: var(--pesaje-exito);
-  border-color: var(--pesaje-exito-suave);
-  background: var(--pesaje-exito-suave);
-}
-
-.abm-switch[data-estado='Inactivo']::after {
-  color: var(--pesaje-primario);
-  border-color: var(--pesaje-primario-suave);
-  background: var(--pesaje-primario-suave);
 }
 
 .abm-switch-input {

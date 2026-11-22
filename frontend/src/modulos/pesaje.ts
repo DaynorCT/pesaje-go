@@ -283,8 +283,8 @@ export function montarPesaje(host: HTMLElement): () => void {
         <td>${f.pesoBruto}</td>
         <td>${f.tara}</td>
         <td>${f.pesoNeto}</td>
-        <td><span class="badge badge-${activo ? 'activo' : 'inactivo'}">${f.estado}</span></td>
-        <td><span class="badge badge-${enProceso ? 'proceso' : 'finalizado'}">${f.estadoBalanza.replace('_', ' ')}</span></td>
+        <td><span class="estado-etiqueta estado-etiqueta--${activo ? 'activo' : 'inactivo'}">${activo ? 'ACTIVO' : 'INACTIVO'}</span></td>
+        <td><span class="estado-etiqueta estado-etiqueta--${enProceso ? 'proceso' : 'finalizado'}">${f.estadoBalanza.replace('_', ' ')}</span></td>
         <td class="pesaje-celda-acciones">${acciones}</td>
       `;
       body.appendChild(tr);
