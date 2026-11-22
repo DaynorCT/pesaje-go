@@ -11,6 +11,7 @@ import (
 	"sistema-pesaje/internal/balanza"
 	"sistema-pesaje/internal/config"
 	"sistema-pesaje/internal/datos"
+	pesync "sistema-pesaje/internal/sync"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -23,8 +24,20 @@ type App struct {
 
 	muIntegrado sync.Mutex
 	integrado   estadoIntegrado
+	muPesaje    sync.Mutex
+	pesajeUI    estadoPesajeUI
 	sesion      *UsuarioDTO
 	balanzaSvc  *balanza.Servicio
+	muSync      sync.Mutex
+	syncSvc     *pesync.Servicio
+	claveWeb    string
+}
+
+type estadoPesajeUI struct {
+	pesoBruto  int
+	pesoTara   int
+	mensaje    string
+	esError    bool
 }
 
 type estadoIntegrado struct {
@@ -61,10 +74,11 @@ type LoginRespuesta struct {
 }
 
 type UsuarioDTO struct {
-	ID     int64  `json:"id"`
-	Email  string `json:"email"`
-	Nombre string `json:"nombre"`
-	Rol    string `json:"rol"`
+	ID        int64  `json:"id"`
+	PersonaID int64  `json:"personaId"`
+	Email     string `json:"email"`
+	Nombre    string `json:"nombre"`
+	Rol       string `json:"rol"`
 }
 
 type EstadoIntegradoDTO struct {
@@ -87,9 +101,10 @@ type AvisoDTO struct {
 }
 
 type AccionDTO struct {
-	OK      bool     `json:"ok"`
-	Aviso   *AvisoDTO `json:"aviso,omitempty"`
-	Estado  *EstadoIntegradoDTO `json:"estado,omitempty"`
+	OK           bool                  `json:"ok"`
+	Aviso        *AvisoDTO             `json:"aviso,omitempty"`
+	Estado       *EstadoIntegradoDTO   `json:"estado,omitempty"`
+	EstadoPesaje *EstadoPesajePaneDTO  `json:"estadoPesaje,omitempty"`
 }
 
 func (a *App) AvisoLoginInicial() string {
@@ -123,13 +138,15 @@ func (a *App) Autenticar(email, contrasena string) LoginRespuesta {
 		}
 	}
 	u := res.Usuario
-	dto := &UsuarioDTO{ID: u.ID, Email: u.Email, Nombre: u.Nombre, Rol: u.Rol}
+	dto := &UsuarioDTO{ID: u.ID, PersonaID: u.PersonaID, Email: u.Email, Nombre: u.Nombre, Rol: u.Rol}
 	a.sesion = dto
 	a.muIntegrado.Lock()
 	a.integrado = estadoIntegrado{}
 	a.muIntegrado.Unlock()
 
+	a.prepararSync(email, contrasena)
 	a.activarVentanaIntegrado()
+	a.syncAlMostrar()
 
 	return LoginRespuesta{
 		Exito:   true,
@@ -147,11 +164,10 @@ func (a *App) construirEstado() EstadoIntegradoDTO {
 	defer a.muIntegrado.Unlock()
 	cfg := config.Cargar()
 	syncDisp := strings.TrimSpace(cfg.URL) != ""
-	textoSync := "Sin web"
-	syncVar := "proceso"
-	if syncDisp {
-		textoSync = "Al día"
-		syncVar = "activo"
+	textoSync, syncVar := a.textoSyncIntegrado()
+	if !syncDisp {
+		textoSync = "Sin web"
+		syncVar = "proceso"
 	}
 	balanzaTxt := "desconectada"
 	textoBtn := "Conectar balanza"
@@ -210,11 +226,10 @@ func (a *App) AlternarBalanza() AccionDTO {
 func (a *App) construirEstadoUnlocked() EstadoIntegradoDTO {
 	cfg := config.Cargar()
 	syncDisp := strings.TrimSpace(cfg.URL) != ""
-	textoSync := "Sin web"
-	syncVar := "proceso"
-	if syncDisp {
-		textoSync = "Al día"
-		syncVar = "activo"
+	textoSync, syncVar := a.textoSyncIntegrado()
+	if !syncDisp {
+		textoSync = "Sin web"
+		syncVar = "proceso"
 	}
 	balanzaTxt := "desconectada"
 	textoBtn := "Conectar balanza"
@@ -252,22 +267,34 @@ func (a *App) CapturarPeso() AccionDTO {
 
 func (a *App) EnviarPeso() AccionDTO {
 	a.muIntegrado.Lock()
-	defer a.muIntegrado.Unlock()
-	if a.integrado.pesoCapturado <= 0 {
+	peso := a.integrado.pesoCapturado
+	a.muIntegrado.Unlock()
+	if peso <= 0 {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Peso", Mensaje: "Capture el peso primero."}}
 	}
 	cfg := config.Cargar()
 	if strings.TrimSpace(cfg.URL) == "" {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Sincronización", Mensaje: "Servicio de sincronización no disponible."}}
 	}
-	// T10: motor sync
+	a.muSync.Lock()
+	svc := a.syncSvc
+	a.muSync.Unlock()
+	if svc == nil {
+		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Sincronización", Mensaje: "Servicio de sincronización no disponible."}}
+	}
+	ok := svc.EnviarPesoVivo(peso)
+	est := a.construirEstado()
+	if ok {
+		return AccionDTO{
+			OK:    true,
+			Aviso: &AvisoDTO{Titulo: "Envío", Mensaje: "Peso " + formatearPeso(peso) + " enviado a la web."},
+			Estado: ptrEstado(est),
+		}
+	}
 	return AccionDTO{
 		OK: false,
-		Aviso: &AvisoDTO{
-			Titulo:  "Envío",
-			Mensaje: fmt.Sprintf("Envío del peso %s queda para T10 (sync).", formatearPeso(a.integrado.pesoCapturado)),
-		},
-		Estado: ptrEstado(a.construirEstadoUnlocked()),
+		Aviso: &AvisoDTO{Titulo: "Envío", Mensaje: "No se pudo enviar el peso. Revise la conexión con el sistema web."},
+		Estado: ptrEstado(est),
 	}
 }
 
@@ -276,11 +303,19 @@ func (a *App) SincronizarAhora() AccionDTO {
 	if strings.TrimSpace(cfg.URL) == "" {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Sincronización", Mensaje: "La sincronización no está configurada."}}
 	}
-	return AccionDTO{
-		OK: false,
-		Aviso: &AvisoDTO{Titulo: "Sincronización", Mensaje: "Motor de sincronización (T10) aún no implementado en Go."},
-		Estado: ptrEstado(a.construirEstado()),
+	a.muSync.Lock()
+	svc := a.syncSvc
+	a.muSync.Unlock()
+	if svc == nil {
+		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Sincronización", Mensaje: "Inicie sesión para sincronizar."}}
 	}
+	r := svc.SincronizarAhora()
+	est := a.construirEstado()
+	dto := AccionDTO{OK: true, Estado: ptrEstado(est)}
+	if r.Mensaje != "" {
+		dto.Aviso = &AvisoDTO{Titulo: "Sincronización", Mensaje: r.Mensaje}
+	}
+	return dto
 }
 
 func (a *App) SolicitarSistemaCompleto(contrasena string) AccionDTO {
@@ -304,6 +339,7 @@ func (a *App) CerrarSesion() {
 	a.integrado = estadoIntegrado{}
 	a.muIntegrado.Unlock()
 	a.sesion = nil
+	a.cerrarSync()
 	runtime.WindowSetAlwaysOnTop(a.ctx, false)
 	runtime.WindowSetMaxSize(a.ctx, 520, 640)
 	runtime.WindowSetMinSize(a.ctx, 420, 480)

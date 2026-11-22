@@ -1,5 +1,11 @@
 import logo from './assets/images/logo-pesaje.jpg';
 import type { LoginRespuesta } from './login';
+import { montarPesaje } from './modulos/pesaje';
+import { montarCatalogo } from './modulos/catalogos';
+import { montarBalanza } from './modulos/balanza';
+import { montarInicio } from './modulos/inicio';
+import { montarReportes } from './modulos/reportes';
+import { montarBoletaConfig } from './modulos/boleta-config';
 import { deGrupo, porId, principales, type ModuloId } from './navegacion';
 import {
   AbrirSistemaWeb,
@@ -14,8 +20,11 @@ export function montarShell(
 ): void {
   let modulo: ModuloId = 'inicio';
   let sesion = sesionInicial;
+  let limpiarModulo: (() => void) | undefined;
 
   const render = () => {
+    limpiarModulo?.();
+    limpiarModulo = undefined;
     contenedor.replaceChildren();
     const mod = porId(modulo)!;
     contenedor.innerHTML = `
@@ -45,7 +54,7 @@ export function montarShell(
       render();
     });
 
-    pintarContenido(contenedor.querySelector('#shell-contenido') as HTMLElement, mod);
+    limpiarModulo = pintarContenido(contenedor.querySelector('#shell-contenido') as HTMLElement, mod);
     enlazarUsuario(contenedor, sesion);
   };
 
@@ -126,8 +135,43 @@ function cerrarSubmenus(nav: HTMLElement): void {
   nav.querySelectorAll('.shell-submenu').forEach((el) => el.remove());
 }
 
-function pintarContenido(host: HTMLElement, mod: ReturnType<typeof porId>): void {
-  if (!mod) return;
+function pintarContenido(host: HTMLElement, mod: ReturnType<typeof porId>): (() => void) | undefined {
+  if (!mod) return undefined;
+  if (mod.id === 'inicio') {
+    host.className = 'shell-contenido';
+    host.replaceChildren();
+    return montarInicio(host);
+  }
+  if (mod.id === 'reportes') {
+    host.className = 'shell-contenido shell-contenido-abm';
+    host.replaceChildren();
+    return montarReportes(host);
+  }
+  if (mod.id === 'boleta') {
+    host.className = 'shell-contenido';
+    host.replaceChildren();
+    return montarBoletaConfig(host);
+  }
+  if (mod.id === 'pesaje') {
+    host.className = 'shell-contenido shell-contenido-pesaje';
+    host.replaceChildren();
+    return montarPesaje(host);
+  }
+  if (mod.id === 'balanza') {
+    host.className = 'shell-contenido';
+    host.replaceChildren();
+    return montarBalanza(host);
+  }
+  const abmIds: ModuloId[] = [
+    'usuarios', 'empresas', 'choferes', 'proveedores',
+    'vehiculos', 'productos', 'origenes', 'destinos',
+  ];
+  if (abmIds.includes(mod.id)) {
+    host.className = 'shell-contenido shell-contenido-abm';
+    host.replaceChildren();
+  return montarCatalogo(host, mod.id) ?? undefined;
+  }
+  host.className = 'shell-contenido';
   const extra = mod.pendienteEn
     ? `<p class="subtitulo">Implementación programada en <strong>${mod.pendienteEn}</strong> (paridad Java).</p>`
     : '';
@@ -138,6 +182,7 @@ function pintarContenido(host: HTMLElement, mod: ReturnType<typeof porId>): void
       <p class="subtitulo">Shell T5 — navegación y cabecera alineadas a <code>ShellPane</code> / <code>Navegacion</code>.</p>
     </section>
   `;
+  return undefined;
 }
 
 function enlazarUsuario(

@@ -23,21 +23,21 @@ export type ModuloNav = {
 };
 
 export const MODULOS: ModuloNav[] = [
-  { id: 'inicio', titulo: 'Inicio', pendienteEn: 'T9' },
-  { id: 'usuarios', titulo: 'Usuarios', pendienteEn: 'T8' },
-  { id: 'empresas', titulo: 'Empresas', pendienteEn: 'T8' },
-  { id: 'choferes', titulo: 'Choferes', pendienteEn: 'T8' },
-  { id: 'proveedores', titulo: 'Proveedores', pendienteEn: 'T8' },
-  { id: 'pesaje', titulo: 'Pesaje', pendienteEn: 'T7' },
+  { id: 'inicio', titulo: 'Inicio' },
+  { id: 'usuarios', titulo: 'Usuarios' },
+  { id: 'empresas', titulo: 'Empresas' },
+  { id: 'choferes', titulo: 'Choferes' },
+  { id: 'proveedores', titulo: 'Proveedores' },
+  { id: 'pesaje', titulo: 'Pesaje' },
   { id: 'catalogo', titulo: 'Catálogo' },
-  { id: 'vehiculos', titulo: 'Vehículos', grupo: 'Catálogo', pendienteEn: 'T8' },
-  { id: 'productos', titulo: 'Productos', grupo: 'Catálogo', pendienteEn: 'T8' },
-  { id: 'origenes', titulo: 'Orígenes', grupo: 'Catálogo', pendienteEn: 'T8' },
-  { id: 'destinos', titulo: 'Destinos', grupo: 'Catálogo', pendienteEn: 'T8' },
-  { id: 'reportes', titulo: 'Reportes', pendienteEn: 'T9' },
+  { id: 'vehiculos', titulo: 'Vehículos', grupo: 'Catálogo' },
+  { id: 'productos', titulo: 'Productos', grupo: 'Catálogo' },
+  { id: 'origenes', titulo: 'Orígenes', grupo: 'Catálogo' },
+  { id: 'destinos', titulo: 'Destinos', grupo: 'Catálogo' },
+  { id: 'reportes', titulo: 'Reportes' },
   { id: 'config', titulo: 'Configuración' },
-  { id: 'boleta', titulo: 'Boleta', grupo: 'Configuración', pendienteEn: 'T9' },
-  { id: 'balanza', titulo: 'Balanza', grupo: 'Configuración', pendienteEn: 'T8' },
+  { id: 'boleta', titulo: 'Boleta', grupo: 'Configuración' },
+  { id: 'balanza', titulo: 'Balanza', grupo: 'Configuración' },
 ];
 
 export function principales(): ModuloNav[] {

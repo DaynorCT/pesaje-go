@@ -49,3 +49,15 @@ func DirectorioDatos() string {
 func RutaPorDefecto() string {
 	return filepath.Join(DirectorioDatos(), ArchivoBase)
 }
+
+// CarpetaReportes carpeta de PDF (paridad ReportesPane Java: Documents/SistemaPesaje).
+func CarpetaReportes() string {
+	home, _ := os.UserHomeDir()
+	if runtime.GOOS == "windows" {
+		return filepath.Join(home, "Documents", CarpetaDatos)
+	}
+	if runtime.GOOS == "darwin" {
+		return filepath.Join(home, "Documents", CarpetaDatos)
+	}
+	return filepath.Join(home, "Documents", CarpetaDatos)
+}

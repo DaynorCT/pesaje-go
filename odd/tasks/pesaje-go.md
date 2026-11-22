@@ -21,10 +21,10 @@ S6. Reutilizar `%APPDATA%\SistemaPesaje` (y paths equivalentes): misma `pesaje.d
 | T4 | S2,S3 | Modo integrado 480×680, always-on-top, barra superior (paridad `ModoIntegradoPane`) | inline | `bbdaa78` |
 | T5 | S2,S3 | Shell + navegación + menú usuario (paridad `ShellPane`/`Navegacion`) | inline | `b57ecc1` |
 | T6 | S2 | Báscula RS232 + parser + tests | inline | `887d2d1` |
-| T7 | S2 | Módulo pesaje (captura, grilla, quick-add) | inline | |
-| T8 | S2 | Catálogos ABM + empresas/logo + usuarios | inline | |
-| T9 | S2 | Dashboard + reportes PDF + vista previa | inline | |
-| T10 | S2,S6 | Sync motor/outbox (paridad tests Java) | worker | |
+| T7 | S2 | Módulo pesaje (captura, grilla, quick-add) | inline | en curso |
+| T8 | S2 | Catálogos ABM + empresas/logo + usuarios | inline | en curso |
+| T9 | S2 | Dashboard + reportes PDF + vista previa | inline | en curso |
+| T10 | S2,S6 | Sync motor/outbox (paridad tests Java) | worker | done |
 | T11 | S5 | Build `sistema-pesaje.exe` + guía instalación Windows | inline | |
 | T12 | S1,S2 | Verificación: tests Go + checklist paridad visual por pantalla | inline | |
 
@@ -35,4 +35,8 @@ L2. Usuario abrió `/Users/jaru/dev/firma/pesaje-go` como carpeta de proyecto en
 L3. T3 login: pantalla paridad LoginPane, bindings Autenticar/AvisoLoginInicial, ventana 460→480 tras éxito.
 L4. T4 modo integrado: UI barra + registro peso; alwaysontop desde config.json; balanza/sync en T6/T10.
 L5. T5 shell 1280×800 tras contraseña; menú usuario; paneles placeholder hasta T7–T9.
+L6. T7: pantalla Pesaje conectada a Go (combos, captura bruto/tara, grilla, quick-add chofer/vehículo/proveedor); boleta PDF y sync encolado pendientes T9/T10.
+L7. T8: PanelAbm genérico + ABM vehículos/choferes/proveedores/productos/orígenes/destinos/empresas/usuarios; pantalla Balanza (config RS232 en BD).
+L8. T9: Inicio (resumen), Reportes (filtros + PDF), Boleta config; PDF gofpdf + abrir con visor del SO; logo en boleta PDF pendiente de paridad fina.
+L9. T10: `internal/sync` (policy, outbox, sesión HTTP, motor push/pull, aplicador delta); servicio + auto-sync; bindings EnviarPeso/SincronizarAhora; encolar en PesajeRegistrar; tests policy + motor.
 

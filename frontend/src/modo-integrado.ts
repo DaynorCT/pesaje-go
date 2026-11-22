@@ -171,7 +171,10 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
         return;
       }
       if (accion === 'balanza') {
-        mostrarAviso('Configuración balanza RS232', 'La pantalla de configuración llega en T6/T8.');
+        mostrarAviso(
+          'Configuración balanza',
+          'Use Menú → Sistema completo → Configuración → Balanza para RS232.',
+        );
         return;
       }
       if (accion === 'cerrar') {
