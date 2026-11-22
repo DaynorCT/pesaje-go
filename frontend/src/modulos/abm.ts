@@ -1,4 +1,5 @@
 import { AbmGuardar, AbmListar } from '../../wailsjs/go/main/App';
+import { enlazarDialogo, fijarAnchoDialogo, htmlDialogoFormGuardar } from '../dialogo';
 
 export type CampoAbm = {
   clave: string;
@@ -70,17 +71,16 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
           <tbody id="abm-body"></tbody>
         </table>
       </div>
-      <dialog id="abm-dialog" class="dlg-aviso abm-dialog">
-        <form class="tarjeta dlg-contenido abm-dialog-form" id="abm-form">
-          <h3 class="titulo-tarjeta" id="abm-dialog-titulo"></h3>
-          <div class="abm-dialog-grid" id="abm-campos"></div>
-          <p id="abm-dialog-msg" class="subtitulo abm-dialog-msg"></p>
-          <div class="dlg-acciones">
-            <button type="button" class="boton-secundario" id="abm-cancelar">Cancelar</button>
-            <button type="submit" class="boton-primario" id="abm-guardar">Guardar</button>
-          </div>
-        </form>
-      </dialog>
+      ${htmlDialogoFormGuardar({
+        dialogId: 'abm-dialog',
+        formId: 'abm-form',
+        tituloId: 'abm-dialog-titulo',
+        cuerpoId: 'abm-campos',
+        mensajeId: 'abm-dialog-msg',
+        cancelarId: 'abm-cancelar',
+        clasesCuerpoId: 'abm-dialog-grid',
+        scroll: true,
+      })}
     </div>
   `;
 
@@ -122,7 +122,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
 
   const mostrarMsgDialog = (texto: string, error = false) => {
     mensajeDialog.textContent = texto;
-    mensajeDialog.className = error ? 'mensaje-error abm-dialog-msg' : 'subtitulo abm-dialog-msg mensaje-exito';
+    mensajeDialog.className = error ? 'mensaje-error dlg-dialog-msg' : 'subtitulo dlg-dialog-msg mensaje-exito';
   };
 
   const actualizarVisibilidadCampos = () => {
@@ -137,8 +137,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
     }
     const cols = columnasDialogo(visibles);
     camposHost.className = `abm-dialog-grid abm-dialog-grid--${cols}`;
-    dialog.classList.toggle('abm-dialog--3', cols === 3);
-    dialog.classList.toggle('abm-dialog--2', cols === 2);
+    fijarAnchoDialogo(dialog, cols === 3 ? 'amplio' : 'medio');
     return visibles;
   };
 
@@ -288,14 +287,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
     abrirDialogo();
   });
 
-  host.querySelector('#abm-cancelar')?.addEventListener('click', () => {
-    cerrarDialogo();
-  });
-
-  dialog.addEventListener('cancel', (ev) => {
-    ev.preventDefault();
-    cerrarDialogo();
-  });
+  enlazarDialogo(dialog, [host.querySelector('#abm-cancelar') as HTMLButtonElement]);
 
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();

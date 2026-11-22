@@ -9,6 +9,13 @@ import {
   SincronizarAhora,
   SolicitarSistemaCompleto,
 } from '../wailsjs/go/main/App';
+import {
+  crearDialogoAviso,
+  enlazarDialogo,
+  htmlAccionesDialogo,
+  htmlBotonDialogo,
+  htmlShellDialogo,
+} from './dialogo';
 
 export type EstadoIntegrado = {
   balanzaConectada: boolean;
@@ -74,23 +81,7 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
           </div>
         </section>
       </main>
-      <dialog id="dlg-aviso" class="dlg-aviso">
-        <form method="dialog" class="tarjeta dlg-contenido">
-          <h3 id="dlg-titulo" class="titulo-tarjeta"></h3>
-          <p id="dlg-mensaje" class="subtitulo"></p>
-          <button type="submit" class="boton-primario">Aceptar</button>
-        </form>
-      </dialog>
-      <dialog id="dlg-password" class="dlg-aviso">
-        <form method="dialog" class="tarjeta dlg-contenido" id="form-sistema">
-          <h3 class="titulo-tarjeta">Acceso al sistema completo</h3>
-          <input class="password-field" type="password" id="pwd-sistema" placeholder="Contraseña" required />
-          <div class="dlg-acciones">
-            <button type="button" class="boton-secundario" id="pwd-cancelar">Cancelar</button>
-            <button type="submit" class="boton-primario">Continuar</button>
-          </div>
-        </form>
-      </dialog>
+      <div id="montaje-dialogos-integrado"></div>
     </div>
   `;
 
@@ -107,17 +98,48 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
   const btnSync = contenedor.querySelector('#btn-sync') as HTMLButtonElement;
   const btnMenu = contenedor.querySelector('#btn-menu') as HTMLButtonElement;
   const menu = contenedor.querySelector('#menu-flotante') as HTMLDivElement;
-  const dlgAviso = contenedor.querySelector('#dlg-aviso') as HTMLDialogElement;
-  const dlgPwd = contenedor.querySelector('#dlg-password') as HTMLDialogElement;
-  const formSistema = contenedor.querySelector('#form-sistema') as HTMLFormElement;
+  const slotDialogos = contenedor.querySelector('#montaje-dialogos-integrado') as HTMLElement;
+  const aviso = crearDialogoAviso(slotDialogos, 'dlg-aviso', 'compacto');
+
+  const wrapPwd = document.createElement('div');
+  wrapPwd.innerHTML = htmlShellDialogo({
+    id: 'dlg-password',
+    ancho: 'compacto',
+    etiqueta: 'form',
+    idCuerpo: 'form-sistema',
+    attrsCuerpo: 'autocomplete="off"',
+    interior: `
+      <h3 class="titulo-tarjeta">Acceso al sistema completo</h3>
+      <p class="subtitulo dlg-intro">
+        Ingrese la contraseña de acceso al escritorio completo (catálogos, pesaje y reportes).
+      </p>
+      <label class="pesaje-campo" for="pwd-sistema">
+        <span class="etiqueta-mini">Contraseña</span>
+        <input
+          class="password-field"
+          type="password"
+          id="pwd-sistema"
+          name="contrasena-sistema"
+          autocomplete="current-password"
+          placeholder="Contraseña"
+          required
+        />
+      </label>
+      ${htmlAccionesDialogo(
+        `${htmlBotonDialogo('button', 'boton-secundario', 'pwd-cancelar', 'Cancelar')}${htmlBotonDialogo('submit', 'boton-primario', 'pwd-continuar', 'Continuar')}`,
+      )}
+    `,
+  });
+  slotDialogos.appendChild(wrapPwd.firstElementChild!);
+
+  const dlgPwd = slotDialogos.querySelector('#dlg-password') as HTMLDialogElement;
+  const formSistema = slotDialogos.querySelector('#form-sistema') as HTMLFormElement;
+  const pwdInput = slotDialogos.querySelector('#pwd-sistema') as HTMLInputElement;
+  const btnPwdCancelar = slotDialogos.querySelector('#pwd-cancelar') as HTMLButtonElement;
+  enlazarDialogo(dlgPwd, [btnPwdCancelar]);
 
   const mostrarAviso = (titulo: string, mensaje: string, esError = false) => {
-    const t = contenedor.querySelector('#dlg-titulo') as HTMLElement;
-    const m = contenedor.querySelector('#dlg-mensaje') as HTMLElement;
-    t.textContent = titulo;
-    m.textContent = mensaje;
-    m.className = esError ? 'mensaje-error' : 'subtitulo';
-    dlgAviso.showModal();
+    aviso.mostrar(titulo, mensaje, esError);
   };
 
   const aplicarEstado = (e: EstadoIntegrado) => {
@@ -166,8 +188,9 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
       menu.hidden = true;
       const accion = btn.getAttribute('data-accion');
       if (accion === 'sistema') {
+        pwdInput.value = '';
         dlgPwd.showModal();
-        (contenedor.querySelector('#pwd-sistema') as HTMLInputElement).value = '';
+        requestAnimationFrame(() => pwdInput.focus());
         return;
       }
       if (accion === 'balanza') {
@@ -189,7 +212,7 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
   contenedor.querySelector('#pwd-cancelar')?.addEventListener('click', () => dlgPwd.close());
   formSistema.addEventListener('submit', (ev) => {
     ev.preventDefault();
-    const pwd = (contenedor.querySelector('#pwd-sistema') as HTMLInputElement).value;
+    const pwd = pwdInput.value;
     void SolicitarSistemaCompleto(pwd).then((a) => {
       dlgPwd.close();
       const acc = a as Accion;

@@ -122,6 +122,11 @@ input.password-field:focus {
   background: var(--pesaje-fondo);
 }
 
+#montaje-dialogos-integrado,
+#pesaje-dialogos {
+  display: contents;
+}
+
 .barra-superior {
   background: var(--pesaje-tarjeta);
   border-bottom: 1px solid var(--pesaje-primario-suave);
@@ -247,31 +252,94 @@ input.password-field:focus {
   margin: 0;
 }
 
+/* Diálogos modales (ABM, pesaje, modo integrado): un solo diseño */
 .dlg-aviso {
   border: none;
   padding: 0;
+  margin: 0;
   border-radius: 12px;
   overflow: hidden;
   background: transparent;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+}
+
+.dlg-aviso:not([open]) {
+  display: none;
+}
+
+.dlg-aviso[open] {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
 }
 
 .dlg-aviso::backdrop {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(31, 41, 51, 0.28);
 }
 
-.dlg-contenido {
-  border: none;
+.dlg-aviso.dlg-ancho-compacto {
+  width: min(400px, 100%);
+}
+
+.dlg-aviso.dlg-ancho-medio {
+  width: min(560px, 100%);
+}
+
+.dlg-aviso.dlg-ancho-amplio {
+  width: min(820px, 100%);
+}
+
+.dlg-contenido .dlg-intro {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.dlg-contenido .pesaje-campo {
+  margin: 0;
+}
+
+.tarjeta.dlg-contenido {
   min-width: 280px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  margin: 0;
   border-radius: 12px;
+  padding: 18px 20px;
+  background: var(--pesaje-tarjeta);
+  border: 1px solid var(--pesaje-borde);
+  box-shadow: 0 16px 48px rgba(31, 41, 51, 0.14);
+  box-sizing: border-box;
+}
+
+.dlg-contenido .titulo-tarjeta {
+  margin: 0;
+  font-size: 15px;
+}
+
+.dlg-contenido .subtitulo:last-of-type:not(.dlg-dialog-msg) {
+  margin: 0;
+}
+
+.dlg-contenido--scroll {
+  max-height: calc(100vh - 48px);
+  overflow: auto;
 }
 
 .dlg-acciones {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+  margin-top: 2px;
+}
+
+.dlg-acciones .boton-primario,
+.dlg-acciones .boton-secundario {
+  cursor: pointer;
 }
 
 .shell {
@@ -508,29 +576,9 @@ input.password-field:focus {
   overflow: auto;
 }
 
-.abm-dialog {
-  border: none;
-  padding: 0;
-  border-radius: 12px;
-  overflow: hidden;
-  max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 32px);
-  background: transparent;
-}
-
-.abm-dialog--2 {
-  width: min(560px, 100%);
-}
-
-.abm-dialog--3 {
-  width: min(820px, 100%);
-}
-
-.abm-dialog-form {
+.dlg-dialog-msg {
+  min-height: 1.2em;
   margin: 0;
-  max-height: calc(100vh - 48px);
-  overflow: auto;
-  border-radius: 12px;
 }
 
 .abm-dialog-grid {
@@ -548,11 +596,6 @@ input.password-field:focus {
 
 .abm-dialog-grid .pesaje-campo[data-ancho-completo] {
   grid-column: 1 / -1;
-}
-
-.abm-dialog-msg {
-  min-height: 1.2em;
-  margin: 0;
 }
 
 .abm-th-acciones {

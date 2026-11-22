@@ -17,6 +17,7 @@ import {
   PesajeOpciones,
   PesajeRegistrar,
 } from '../../wailsjs/go/main/App';
+import { crearDialogoAviso, enlazarDialogo, htmlDialogoFormGuardar } from '../dialogo';
 
 type Opcion = { id: number; label: string };
 
@@ -112,36 +113,31 @@ export function montarPesaje(host: HTMLElement): () => void {
           </table>
         </div>
       </section>
-      <dialog id="dlg-aviso" class="dlg-aviso">
-        <form method="dialog" class="tarjeta dlg-contenido">
-          <h3 id="dlg-titulo" class="titulo-tarjeta"></h3>
-          <p id="dlg-mensaje" class="subtitulo"></p>
-          <button type="submit" class="boton-primario">Aceptar</button>
-        </form>
-      </dialog>
-      <dialog id="dlg-rapido" class="dlg-aviso">
-        <form class="tarjeta dlg-contenido" id="form-rapido">
-          <h3 id="rapido-titulo" class="titulo-tarjeta"></h3>
-          <div id="rapido-campos"></div>
-          <div class="dlg-acciones">
-            <button type="button" class="boton-secundario" id="rapido-cancelar">Cancelar</button>
-            <button type="submit" class="boton-primario">Guardar</button>
-          </div>
-        </form>
-      </dialog>
+      <div id="pesaje-dialogos"></div>
     </div>
   `;
 
   const qs = <T extends HTMLElement>(sel: string) => host.querySelector(sel) as T;
-  const dlgAviso = qs<HTMLDialogElement>('#dlg-aviso');
+  const slotDialogos = qs<HTMLElement>('#pesaje-dialogos');
+  const aviso = crearDialogoAviso(slotDialogos, 'dlg-aviso', 'medio');
+  const wrapRapido = document.createElement('div');
+  wrapRapido.innerHTML = htmlDialogoFormGuardar({
+    dialogId: 'dlg-rapido',
+    formId: 'form-rapido',
+    tituloId: 'rapido-titulo',
+    cuerpoId: 'rapido-campos',
+    mensajeId: 'rapido-msg',
+    cancelarId: 'rapido-cancelar',
+    ancho: 'medio',
+  });
+  slotDialogos.appendChild(wrapRapido.firstElementChild!);
   const dlgRapido = qs<HTMLDialogElement>('#dlg-rapido');
   const formRapido = qs<HTMLFormElement>('#form-rapido');
   const gridDatos = qs<HTMLElement>('#grid-datos');
+  enlazarDialogo(dlgRapido, [qs<HTMLButtonElement>('#rapido-cancelar')]);
 
   const mostrarAviso = (titulo: string, mensaje: string) => {
-    qs('#dlg-titulo').textContent = titulo;
-    qs('#dlg-mensaje').textContent = mensaje;
-    dlgAviso.showModal();
+    aviso.mostrar(titulo, mensaje);
   };
 
   const aplicarEstado = (e: EstadoPane) => {
@@ -409,7 +405,6 @@ export function montarPesaje(host: HTMLElement): () => void {
     });
   });
 
-  qs('#rapido-cancelar').addEventListener('click', () => dlgRapido.close());
   formRapido.addEventListener('submit', (ev) => {
     ev.preventDefault();
     if (!rapidoActual) return;
