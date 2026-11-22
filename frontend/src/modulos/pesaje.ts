@@ -23,6 +23,7 @@ import {
 import {
   aplicarLayoutDialogoCampos,
   crearDialogoAviso,
+  crearDialogoConfirmar,
   enlazarDialogo,
   htmlDialogoFormGuardar,
 } from '../dialogo';
@@ -82,10 +83,24 @@ type AccionPesaje = {
   aviso?: { titulo: string; mensaje: string; esError?: boolean };
 };
 
+/** null = se puede finalizar; string = motivo por el que no. */
+function motivoNoFinalizar(f: Fila): string | null {
+  if ((f.estadoBalanza || '').toUpperCase().trim() !== 'EN_PROCESO') {
+    return 'El pesaje no está EN PROCESO en balanza.';
+  }
+  if (f.pesoBruto <= 0) return 'Falta el peso bruto (use Capt. peso).';
+  if (f.tara <= 0) return 'Falta la tara (vehículo o Capt. tara / tara manual).';
+  if (f.pesoNeto <= 0 || f.pesoBruto <= f.tara) {
+    return 'El peso neto debe ser mayor que cero: bruto tiene que superar a la tara.';
+  }
+  return null;
+}
+
 export function montarPesaje(host: HTMLElement): () => void {
   let timer = 0;
   let taraManual = false;
   let pesajeEdicionId = 0;
+  const filasGrilla = new Map<number, Fila>();
   let opciones: {
     vehiculos: Opcion[];
     choferes: Opcion[];
@@ -179,6 +194,7 @@ export function montarPesaje(host: HTMLElement): () => void {
   const qs = <T extends HTMLElement>(sel: string) => host.querySelector(sel) as T;
   const slotDialogos = qs<HTMLElement>('#pesaje-dialogos');
   const aviso = crearDialogoAviso(slotDialogos, 'dlg-aviso', 'compacto');
+  const confirmar = crearDialogoConfirmar(slotDialogos, 'dlg-confirmar-pesaje');
   const wrapRapido = document.createElement('div');
   wrapRapido.innerHTML = htmlDialogoFormGuardar({
     dialogId: 'dlg-rapido',
@@ -336,7 +352,9 @@ export function montarPesaje(host: HTMLElement): () => void {
     const filas = (await PesajeListarGrilla(50)) as Fila[];
     const body = qs<HTMLTableSectionElement>('#tabla-body');
     body.innerHTML = '';
+    filasGrilla.clear();
     for (const f of filas) {
+      filasGrilla.set(f.id, f);
       const tr = document.createElement('tr');
       const activo = f.estado.toUpperCase() === 'ACTIVO';
       const balanza = (f.estadoBalanza || '').toUpperCase().trim();
@@ -390,12 +408,20 @@ export function montarPesaje(host: HTMLElement): () => void {
   const cambiarEstadoGrilla = async (fila: Fila, sw: HTMLInputElement) => {
     const activo = sw.checked;
     if (!activo) {
-      if (!window.confirm('Se cambiará el estado a INACTIVO. ¿Continuar?')) {
+      const ok = await confirmar.preguntar(
+        'Inactivar pesaje',
+        'Se cambiará el estado a INACTIVO. ¿Continuar?',
+        { confirmar: 'INACTIVAR' },
+      );
+      if (!ok) {
         sincronizarSwitchEstado(sw, true);
         return;
       }
     } else if (fila.estado.toUpperCase() !== 'ACTIVO') {
-      if (!window.confirm('¿Reactivar este pesaje?')) {
+      const ok = await confirmar.preguntar('Reactivar pesaje', '¿Reactivar este pesaje?', {
+        confirmar: 'REACTIVAR',
+      });
+      if (!ok) {
         sincronizarSwitchEstado(sw, false);
         return;
       }
@@ -577,15 +603,27 @@ export function montarPesaje(host: HTMLElement): () => void {
       return;
     }
     if (act === 'finalizar') {
-      if (!window.confirm(`¿Cerrar el pesaje #${id} como FINALIZADO?`)) return;
-      void PesajeFinalizar(id).then(async (r) => {
-        const acc = r as AccionPesaje;
-        manejarAccion(acc);
-        if (acc.ok) {
+      void (async () => {
+        const fila = filasGrilla.get(id);
+        const bloqueo = fila ? motivoNoFinalizar(fila) : null;
+        if (bloqueo) {
+          aviso.mostrar('No se puede finalizar', bloqueo, true);
+          return;
+        }
+        const acepta = await confirmar.preguntar(
+          'Finalizar pesaje',
+          `¿Cerrar el pesaje #${id} como FINALIZADO?\nBruto: ${fila!.pesoBruto} kg · Tara: ${fila!.tara} kg · Neto: ${fila!.pesoNeto} kg`,
+          { confirmar: 'FINALIZAR' },
+        );
+        if (!acepta) return;
+        const r = (await PesajeFinalizar(id)) as AccionPesaje;
+        manejarAccion(r);
+        if (r.ok) {
           if (pesajeEdicionId === id) cancelarEdicion();
           await recargarGrilla();
         }
-      });
+      })();
+      return;
     }
     if (act === 'boleta') {
       void PesajeBoleta(id).then((r) => manejarAccion(r as AccionPesaje));

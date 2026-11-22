@@ -168,3 +168,74 @@ export function fijarAnchoDialogo(dialog: HTMLDialogElement, ancho: AnchoDialogo
   dialog.classList.remove('dlg-ancho-compacto', 'dlg-ancho-medio', 'dlg-ancho-amplio');
   dialog.classList.add(claseAnchoDialogo(ancho));
 }
+
+export type DialogoConfirmar = {
+  dialog: HTMLDialogElement;
+  preguntar: (
+    titulo: string,
+    mensaje: string,
+    opts?: { confirmar?: string; cancelar?: string },
+  ) => Promise<boolean>;
+};
+
+/** Confirmación Cancelar / acción primaria (sustituto de `window.confirm` en Wails). */
+export function crearDialogoConfirmar(
+  root: ParentNode,
+  id = 'dlg-confirmar',
+  ancho: AnchoDialogo = 'compacto',
+): DialogoConfirmar {
+  const idTitulo = `${id}-titulo`;
+  const idMensaje = `${id}-mensaje`;
+  const idCancelar = `${id}-cancelar`;
+  const idOk = `${id}-ok`;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = htmlShellDialogo({
+    id,
+    ancho,
+    interior: `
+      <h3 class="titulo-tarjeta" id="${idTitulo}"></h3>
+      <p class="subtitulo dlg-intro" id="${idMensaje}"></p>
+      ${htmlAccionesDialogo(
+        `${htmlBotonDialogo('button', 'boton-secundario', idCancelar, 'CANCELAR')}${htmlBotonDialogo('button', 'boton-primario', idOk, 'CONFIRMAR')}`,
+      )}
+    `,
+  });
+  root.appendChild(wrap.firstElementChild!);
+  const dialog = root.querySelector(`#${id}`) as HTMLDialogElement;
+  const titulo = root.querySelector(`#${idTitulo}`) as HTMLElement;
+  const mensaje = root.querySelector(`#${idMensaje}`) as HTMLElement;
+  const cancelar = root.querySelector(`#${idCancelar}`) as HTMLButtonElement;
+  const ok = root.querySelector(`#${idOk}`) as HTMLButtonElement;
+  enlazarDialogo(dialog, [cancelar]);
+
+  return {
+    dialog,
+    preguntar: (t, m, opts) =>
+      new Promise((resolve) => {
+        titulo.textContent = t;
+        mensaje.textContent = m;
+        mensaje.className = 'subtitulo dlg-intro';
+        ok.textContent = opts?.confirmar ?? 'CONFIRMAR';
+        cancelar.textContent = opts?.cancelar ?? 'CANCELAR';
+
+        let resuelto = false;
+        const cerrar = (valor: boolean) => {
+          if (resuelto) return;
+          resuelto = true;
+          ok.removeEventListener('click', alOk);
+          cancelar.removeEventListener('click', alCancelar);
+          dialog.removeEventListener('close', alCerrar);
+          if (dialog.open) dialog.close();
+          resolve(valor);
+        };
+        const alOk = () => cerrar(true);
+        const alCancelar = () => cerrar(false);
+        const alCerrar = () => cerrar(false);
+
+        ok.addEventListener('click', alOk);
+        cancelar.addEventListener('click', alCancelar);
+        dialog.addEventListener('close', alCerrar);
+        dialog.showModal();
+      }),
+  };
+}

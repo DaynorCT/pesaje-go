@@ -355,15 +355,21 @@ UPDATE pesajes SET estado = ?, usuario_modificacion = ?, fecha_modificacion = ? 
 
 func FinalizarPesaje(ctx context.Context, db *sql.DB, id, usuarioID int64) error {
 	res, err := db.ExecContext(ctx, `
-UPDATE pesajes SET estado_balanza = 'FINALIZADO', usuario_modificacion = ?, fecha_modificacion = ?
-WHERE id = ? AND estado_balanza = 'EN_PROCESO' AND COALESCE(peso_bruto, 0) > 0 AND COALESCE(tara, 0) > 0`,
+UPDATE pesajes SET
+  estado_balanza = 'FINALIZADO',
+  peso_neto = COALESCE(peso_bruto, 0) - COALESCE(tara, 0),
+  usuario_modificacion = ?, fecha_modificacion = ?
+WHERE id = ? AND estado_balanza = 'EN_PROCESO'
+  AND COALESCE(peso_bruto, 0) > 0
+  AND COALESCE(tara, 0) > 0
+  AND COALESCE(peso_bruto, 0) > COALESCE(tara, 0)`,
 		usuarioID, Ahora(), id)
 	if err != nil {
 		return err
 	}
 	n, _ := res.RowsAffected()
 	if n == 0 {
-		return fmt.Errorf("no se pudo finalizar: el pesaje debe estar EN PROCESO con peso bruto y tara mayores a cero")
+		return fmt.Errorf("no se puede finalizar: debe estar EN PROCESO con peso bruto y tara mayores a cero y bruto mayor que la tara (neto positivo)")
 	}
 	return nil
 }
