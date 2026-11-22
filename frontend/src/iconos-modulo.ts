@@ -25,6 +25,11 @@ export function iconoModuloHTML(id: ModuloId): string {
   return ICONOS[id] ?? '';
 }
 
+/** Icono del botón Usuario en la cabecera del shell. */
+export function iconoUsuarioCabeceraHTML(): string {
+  return `<svg ${attrs}><circle cx="12" cy="8" r="4.25"/><path d="M5 21v-1a7 7 0 0 1 14 0v1"/></svg>`;
+}
+
 export function insertarIconoModulo(contenedor: HTMLElement, id: ModuloId, antes?: ChildNode | null): void {
   const html = iconoModuloHTML(id);
   if (!html) return;

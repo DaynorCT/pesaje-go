@@ -35,7 +35,7 @@ export const MODULOS: ModuloNav[] = [
   { id: 'origenes', titulo: 'Orígenes', grupo: 'Catálogo' },
   { id: 'destinos', titulo: 'Destinos', grupo: 'Catálogo' },
   { id: 'reportes', titulo: 'Reportes' },
-  { id: 'config', titulo: 'Configuración' },
+  { id: 'config', titulo: 'Config.' },
   { id: 'boleta', titulo: 'Boleta', grupo: 'Configuración' },
   { id: 'balanza', titulo: 'Balanza', grupo: 'Configuración' },
 ];

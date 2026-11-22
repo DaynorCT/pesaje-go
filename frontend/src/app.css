@@ -140,7 +140,7 @@ input.password-field:focus {
 
 .barra-logo img {
   display: block;
-  max-width: 160px;
+  max-width: 132px;
   height: auto;
 }
 
@@ -286,7 +286,7 @@ input.password-field:focus {
 }
 
 .shell-logo {
-  height: 50px;
+  height: 42px;
   width: auto;
 }
 
@@ -382,6 +382,21 @@ input.password-field:focus {
 
 .shell-usuario {
   position: relative;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.boton-usuario-cabecera {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.boton-usuario-cabecera .shell-usuario-icon {
+  flex-shrink: 0;
 }
 
 .shell-menu-usuario {

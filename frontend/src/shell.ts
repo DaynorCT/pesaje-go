@@ -6,7 +6,7 @@ import { montarBalanza } from './modulos/balanza';
 import { montarInicio } from './modulos/inicio';
 import { montarReportes } from './modulos/reportes';
 import { montarBoletaConfig } from './modulos/boleta-config';
-import { insertarIconoModulo } from './iconos-modulo';
+import { iconoUsuarioCabeceraHTML, insertarIconoModulo } from './iconos-modulo';
 import { deGrupo, porId, principales, type ModuloId } from './navegacion';
 import {
   AbrirSistemaWeb,
@@ -41,11 +41,17 @@ export function montarShell(
       <div class="shell root">
         <header class="barra-superior shell-cabecera">
           <div class="shell-fila-principal">
-            <img class="shell-logo" alt="Sistema de Pesaje" width="160" />
+            <img class="shell-logo" alt="Sistema de Pesaje" width="132" />
             <nav class="barra-navegacion shell-nav" id="shell-nav"></nav>
             <div class="shell-usuario">
-              <button type="button" class="boton-secundario boton-usuario-cabecera" id="btn-usuario">
-                Usuario
+              <button
+                type="button"
+                class="boton-secundario boton-usuario-cabecera"
+                id="btn-usuario"
+                aria-label="Menú de usuario"
+                title="Usuario"
+              >
+                <span class="shell-item-icon shell-usuario-icon" aria-hidden="true"></span>
               </button>
               <div class="menu-flotante shell-menu-usuario" id="menu-usuario" hidden></div>
             </div>
@@ -96,7 +102,9 @@ function pintarNav(
   for (const m of principales()) {
     const hijos = m.id === 'catalogo' ? deGrupo('Catálogo') : m.id === 'config' ? deGrupo('Configuración') : [];
     const estaActivo =
-      activo === m.id || (!!porId(activo)?.grupo && porId(activo)?.grupo === m.titulo);
+      activo === m.id ||
+      (m.id === 'catalogo' && porId(activo)?.grupo === 'Catálogo') ||
+      (m.id === 'config' && porId(activo)?.grupo === 'Configuración');
 
     const ancla = document.createElement('div');
     ancla.className = 'shell-menu-ancla';
@@ -121,7 +129,9 @@ function pintarNav(
     if (hijos.length > 0) {
       btn.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        alternarSubmenu(ancla, m.titulo, hijos, alElegir);
+        const tituloSub =
+          m.id === 'config' ? 'Configuración' : m.id === 'catalogo' ? 'Catálogo' : m.titulo;
+        alternarSubmenu(ancla, tituloSub, hijos, alElegir);
       });
     } else {
       btn.addEventListener('click', (ev) => {
@@ -238,7 +248,10 @@ function enlazarUsuario(
   const btn = root.querySelector('#btn-usuario') as HTMLButtonElement;
   const menu = root.querySelector('#menu-usuario') as HTMLDivElement;
   const nombre = sesion?.nombre || sesion?.email || 'Usuario';
-  btn.textContent = nombre;
+  btn.title = nombre;
+  btn.setAttribute('aria-label', `Menú de usuario: ${nombre}`);
+  const icono = btn.querySelector('.shell-usuario-icon');
+  if (icono) icono.innerHTML = iconoUsuarioCabeceraHTML();
 
   menu.innerHTML = `
     <p class="subtitulo">${escapeHtml(nombre)}</p>

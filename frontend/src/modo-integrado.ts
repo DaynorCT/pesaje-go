@@ -35,7 +35,7 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
       <header class="barra-superior">
         <div class="barra-fila-principal">
           <div class="barra-logo">
-            <img alt="Sistema de Pesaje" width="160" />
+            <img alt="Sistema de Pesaje" width="132" />
           </div>
           <div class="barra-acciones">
             <button type="button" class="boton-secundario" id="btn-sync">Sincronizar ahora</button>
