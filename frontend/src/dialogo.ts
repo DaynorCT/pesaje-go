@@ -79,7 +79,7 @@ export function crearDialogoAviso(
     interior: `
       <h3 class="titulo-tarjeta" id="${idTitulo}"></h3>
       <p class="subtitulo dlg-intro" id="${idMensaje}"></p>
-      ${htmlAccionesDialogo(htmlBotonDialogo('button', 'boton-primario', idOk, 'Aceptar'))}
+      ${htmlAccionesDialogo(htmlBotonDialogo('button', 'boton-primario', idOk, 'ACEPTAR'))}
     `,
   });
   root.appendChild(wrap.firstElementChild!);
@@ -122,7 +122,7 @@ export function htmlDialogoFormGuardar(opts: DialogoFormGuardarOpts): string {
   const intro = opts.introHtml ?? '';
   const clasesCampos = opts.clasesCuerpoId ? ` class="${opts.clasesCuerpoId}"` : '';
   const scroll = opts.scroll ? ' dlg-contenido--scroll' : '';
-  const guardar = opts.textoGuardar ?? 'Guardar';
+  const guardar = opts.textoGuardar ?? 'GUARDAR';
   return htmlShellDialogo({
     id: opts.dialogId,
     ancho: opts.ancho ?? 'medio',
@@ -136,7 +136,7 @@ export function htmlDialogoFormGuardar(opts: DialogoFormGuardarOpts): string {
       <div id="${opts.cuerpoId}"${clasesCampos}></div>
       <p id="${opts.mensajeId}" class="subtitulo dlg-dialog-msg"></p>
       ${htmlAccionesDialogo(
-        `${htmlBotonDialogo('button', 'boton-secundario', opts.cancelarId, 'Cancelar')}${htmlBotonDialogo('submit', 'boton-primario', `${opts.formId}-submit`, guardar)}`,
+        `${htmlBotonDialogo('button', 'boton-secundario', opts.cancelarId, 'CANCELAR')}${htmlBotonDialogo('submit', 'boton-primario', `${opts.formId}-submit`, guardar)}`,
       )}
     `,
   });

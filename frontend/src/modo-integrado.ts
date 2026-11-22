@@ -126,7 +126,7 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
         />
       </label>
       ${htmlAccionesDialogo(
-        `${htmlBotonDialogo('button', 'boton-secundario', 'pwd-cancelar', 'Cancelar')}${htmlBotonDialogo('submit', 'boton-primario', 'pwd-continuar', 'Continuar')}`,
+        `${htmlBotonDialogo('button', 'boton-secundario', 'pwd-cancelar', 'CANCELAR')}${htmlBotonDialogo('submit', 'boton-primario', 'pwd-continuar', 'CONTINUAR')}`,
       )}
     `,
   });

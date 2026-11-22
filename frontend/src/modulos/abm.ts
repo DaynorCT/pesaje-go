@@ -63,7 +63,7 @@ function sincronizarSwitchUI(input: HTMLInputElement, activo: boolean): void {
   input.checked = activo;
   input.setAttribute('aria-label', txt);
   input.setAttribute('aria-checked', activo ? 'true' : 'false');
-  if (label) label.dataset.estado = txt;
+  if (label) label.dataset.tip = txt;
 }
 
 export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
@@ -279,7 +279,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
         htmlCeldaEstado(f.estado, activo) +
         `<td class="abm-celda-acciones">
           <button type="button" class="abm-btn-editar" data-tip="Editar ${entLabel}" aria-label="Editar ${entLabel}">${ICONO_LAPIZ}</button>
-          <label class="abm-switch" data-estado="${estadoTxt}">
+          <label class="abm-switch" data-tip="${estadoTxt}">
             <input type="checkbox" class="abm-switch-input" role="switch" ${activo ? 'checked' : ''} aria-label="${estadoTxt}" aria-checked="${activo ? 'true' : 'false'}" />
             <span class="abm-switch-pista"></span>
           </label>
