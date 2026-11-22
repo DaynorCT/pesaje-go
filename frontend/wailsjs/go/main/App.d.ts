@@ -4,33 +4,25 @@ import {main} from '../models';
 
 export function AbmGuardar(arg1:main.AbmGuardarDTO):Promise<main.AbmResultadoDTO>;
 
-export function AbrirArchivo(arg1:string):Promise<main.AbmResultadoDTO>;
-
-export function BoletaConfigGuardar(arg1:main.BoletaConfigDTO):Promise<main.AbmResultadoDTO>;
-
-export function BoletaConfigObtener():Promise<main.BoletaConfigDTO>;
-
-export function GenerarBoletaPdf(arg1:number):Promise<main.PdfResultadoDTO>;
-
-export function GenerarReportePdf(arg1:main.FiltroReporteDTO):Promise<main.PdfResultadoDTO>;
-
-export function InicioResumen():Promise<main.ResumenInicioDTO>;
-
-export function ReportesListar(arg1:number):Promise<Array<main.FilaPesajeDTO>>;
-
 export function AbmListar(arg1:string):Promise<Array<main.AbmFilaDTO>>;
 
+export function AbrirArchivo(arg1:string):Promise<main.AbmResultadoDTO>;
+
 export function AbrirSistemaWeb():Promise<main.AccionDTO>;
-
-export function BalanzaGuardarConfig(arg1:main.BalanzaConfigDTO):Promise<main.AbmResultadoDTO>;
-
-export function BalanzaObtenerConfig():Promise<main.BalanzaConfigDTO>;
 
 export function AlternarBalanza():Promise<main.AccionDTO>;
 
 export function Autenticar(arg1:string,arg2:string):Promise<main.LoginRespuesta>;
 
 export function AvisoLoginInicial():Promise<string>;
+
+export function BalanzaGuardarConfig(arg1:main.BalanzaConfigDTO):Promise<main.AbmResultadoDTO>;
+
+export function BalanzaObtenerConfig():Promise<main.BalanzaConfigDTO>;
+
+export function BoletaConfigGuardar(arg1:main.BoletaConfigDTO):Promise<main.AbmResultadoDTO>;
+
+export function BoletaConfigObtener():Promise<main.BoletaConfigDTO>;
 
 export function CapturarPeso():Promise<main.AccionDTO>;
 
@@ -40,15 +32,11 @@ export function EnviarPeso():Promise<main.AccionDTO>;
 
 export function EstadoIntegrado():Promise<main.EstadoIntegradoDTO>;
 
-export function ProductVersion():Promise<string>;
+export function GenerarBoletaPdf(arg1:number):Promise<main.PdfResultadoDTO>;
 
-export function SesionActual():Promise<main.UsuarioDTO>;
+export function GenerarReportePdf(arg1:main.FiltroReporteDTO):Promise<main.PdfResultadoDTO>;
 
-export function SincronizarAhora():Promise<main.AccionDTO>;
-
-export function SolicitarSistemaCompleto(arg1:string):Promise<main.AccionDTO>;
-
-export function VolverAModoIntegrado():Promise<void>;
+export function InicioResumen():Promise<main.ResumenInicioDTO>;
 
 export function PesajeActualizarTara(arg1:number):Promise<main.EstadoPesajePaneDTO>;
 
@@ -56,11 +44,11 @@ export function PesajeAlternarBalanza():Promise<main.AccionDTO>;
 
 export function PesajeBoleta(arg1:number):Promise<main.AccionDTO>;
 
+export function PesajeCambiarEstado(arg1:number,arg2:boolean):Promise<main.AccionDTO>;
+
 export function PesajeCapturarBruto():Promise<main.AccionDTO>;
 
 export function PesajeCapturarTara():Promise<main.AccionDTO>;
-
-export function PesajeCambiarEstado(arg1:number,arg2:boolean):Promise<main.AccionDTO>;
 
 export function PesajeCerrar():Promise<void>;
 
@@ -70,9 +58,9 @@ export function PesajeCrearProveedor(arg1:string,arg2:string,arg3:string,arg4:st
 
 export function PesajeCrearVehiculo(arg1:string,arg2:string,arg3:number):Promise<main.AccionDTO>;
 
-export function PesajeDetalleChofer(arg1:number):Promise<main.ChoferDetalleDTO>;
+export function PesajeDetalleChofer(arg1:number):Promise<main.ChoferDetalleDTO|boolean>;
 
-export function PesajeDetalleVehiculo(arg1:number):Promise<main.VehiculoDetalleDTO>;
+export function PesajeDetalleVehiculo(arg1:number):Promise<main.VehiculoDetalleDTO|boolean>;
 
 export function PesajeEstado():Promise<main.EstadoPesajePaneDTO>;
 
@@ -83,3 +71,15 @@ export function PesajeListarGrilla(arg1:number):Promise<Array<main.FilaPesajeDTO
 export function PesajeOpciones():Promise<main.PesajeOpcionesDTO>;
 
 export function PesajeRegistrar(arg1:main.RegistrarPesajeDTO):Promise<main.AccionDTO>;
+
+export function ProductVersion():Promise<string>;
+
+export function ReportesListar(arg1:number):Promise<Array<main.FilaPesajeDTO>>;
+
+export function SesionActual():Promise<main.UsuarioDTO>;
+
+export function SincronizarAhora():Promise<main.AccionDTO>;
+
+export function SolicitarSistemaCompleto(arg1:string):Promise<main.AccionDTO>;
+
+export function VolverAModoIntegrado():Promise<void>;

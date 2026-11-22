@@ -3,12 +3,25 @@ package reportes
 import (
 	"bytes"
 	"fmt"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"strings"
 	"unicode"
 
 	"sistema-pesaje/internal/datos"
 
 	"github.com/jung-kurt/gofpdf/v2"
+)
+
+const (
+	logoXMM            = 215.0
+	logoYSuperiorMM    = 25.0
+	logoLadoMaxDeseMM  = 70.0
+	logoMargenMM       = 5.0
+	logoYInferiorEncMM = 57.0
+	anchoHojaBoletaMM  = 279.4
+	altoHojaBoletaMM   = 215.9
 )
 
 func sinAcentos(s string) string {
@@ -55,6 +68,7 @@ func GenerarBoleta(d *datos.DatosBoleta, cfg *datos.BoletaConfig) ([]byte, error
 		Size:    gofpdf.SizeType{Wd: 279.4, Ht: 215.9},
 	})
 	pdf.AddPage()
+	dibujarLogoBoleta(pdf, datos.LogoSistemaJPEG())
 	pdf.SetFont("Helvetica", "B", 12)
 	pdf.Text(15, 20, sinAcentos(strings.ToUpper(cfg.Salida)))
 	pdf.SetFont("Helvetica", "B", 15)
@@ -114,6 +128,76 @@ func GenerarBoleta(d *datos.DatosBoleta, cfg *datos.BoletaConfig) ([]byte, error
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func dibujarLogoBoleta(pdf *gofpdf.Fpdf, logoJPEG []byte) {
+	if len(logoJPEG) == 0 {
+		return
+	}
+	wPx, hPx, imgType := dimensionesImagen(logoJPEG)
+	if imgType == "" || wPx <= 0 || hPx <= 0 {
+		return
+	}
+	wMm, hMm := tamanoLogoEnHoja(wPx, hPx)
+	name := "logo-boleta"
+	opts := gofpdf.ImageOptions{ImageType: imgType, ReadDpi: true}
+	_ = pdf.RegisterImageOptionsReader(name, opts, bytes.NewReader(logoJPEG))
+	pdf.ImageOptions(name, logoXMM, logoYSuperiorMM, wMm, hMm, false, opts, 0, "")
+}
+
+func dimensionesImagen(b []byte) (w, h int, imgType string) {
+	cfg, formato, err := image.DecodeConfig(bytes.NewReader(b))
+	if err != nil {
+		return 0, 0, ""
+	}
+	switch formato {
+	case "jpeg":
+		imgType = "JPG"
+	case "png":
+		imgType = "PNG"
+	default:
+		return 0, 0, ""
+	}
+	return cfg.Width, cfg.Height, imgType
+}
+
+func tamanoLogoEnHoja(pxAncho, pxAlto int) (wMm, hMm float64) {
+	cupoAncho := logoLadoMaxDeseMM
+	if cupoAncho > anchoHojaBoletaMM-logoXMM-logoMargenMM {
+		cupoAncho = anchoHojaBoletaMM - logoXMM - logoMargenMM
+	}
+	cupoAltoEnc := logoYInferiorEncMM - logoYSuperiorMM - logoMargenMM
+	cupoAltoHoja := altoHojaBoletaMM - logoYSuperiorMM - logoMargenMM
+	cupoAlto := logoLadoMaxDeseMM
+	if cupoAlto > cupoAltoEnc {
+		cupoAlto = cupoAltoEnc
+	}
+	if cupoAlto > cupoAltoHoja {
+		cupoAlto = cupoAltoHoja
+	}
+	if cupoAncho < 1 {
+		cupoAncho = 1
+	}
+	if cupoAlto < 1 {
+		cupoAlto = 1
+	}
+	proporcion := float64(pxAncho) / float64(pxAlto)
+	if float64(pxAncho)/cupoAncho > float64(pxAlto)/cupoAlto {
+		wMm = cupoAncho
+		hMm = cupoAncho / proporcion
+	} else {
+		hMm = cupoAlto
+		wMm = cupoAlto * proporcion
+	}
+	if hMm > cupoAlto {
+		hMm = cupoAlto
+		wMm = cupoAlto * proporcion
+	}
+	if wMm > cupoAncho {
+		wMm = cupoAncho
+		hMm = cupoAncho / proporcion
+	}
+	return wMm, hMm
 }
 
 func fila(pdf *gofpdf.Fpdf, y float64, ei, vi, ed, vd string) {

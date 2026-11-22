@@ -14,12 +14,14 @@ Port del módulo Java `:pesaje` (`../jacobitus-escritorio/pesaje`) a **Go + Wail
 
 ### Windows 10/11 (build del `.exe`)
 
-1. Instalar Go y Node.
-2. `go install github.com/wailsapp/wails/v2/cmd/wails@latest` y agregar `%USERPROFILE%\go\bin` al `PATH`.
-3. **WebView2** — en Windows 11 ya está; en Windows 10 instalar [Evergreen WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/).
-4. Opcional: [NSIS](https://nsis.sourceforge.io/) si querés instalador (`wails build -nsis`).
+Guía completa de compilación e **instalación en clientes**: [`README-WINDOWS.md`](README-WINDOWS.md).
 
-En macOS solo hace falta tener Xcode Command Line Tools para compilar el host nativo.
+Atajo:
+
+```bash
+./scripts/build-windows.sh          # macOS/Linux → build/bin/sistema-pesaje.exe
+# o en PowerShell: .\scripts\build-windows.ps1
+```
 
 ## Desarrollo
 
@@ -52,10 +54,10 @@ wails build
 | Windows amd64 | `build/bin/sistema-pesaje.exe` |
 | macOS arm64 | `build/bin/sistema-pesaje.app` |
 
-Cross-compile desde macOS hacia Windows (requiere toolchain mingw si aplica):
+Cross-compile desde macOS hacia Windows:
 
 ```bash
-wails build -platform windows/amd64
+./scripts/build-windows.sh
 ```
 
 ## Datos y paridad con Java
@@ -70,6 +72,9 @@ wails build -platform windows/amd64
 |------|-----|
 | `main.go`, `app.go` | Host Wails |
 | `frontend/src/` | UI web (TypeScript + CSS) |
-| `frontend/src/assets/images/logo-pesaje.jpg` | Logo del producto |
+| `assets/images/logo-pesaje.jpg` | Logo canónico (UI + PDF embebido) |
+| `frontend/src/assets/images/logo-pesaje.jpg` | Copia para Vite (misma imagen) |
 | `odd/tasks/pesaje-go.md` | Spec ODD y tareas T1–T12 |
+| `docs/T12-VERIFICACION.md` | Checklist paridad + tests |
+| `scripts/verify.sh` | `go test` + `npm run build` |
 

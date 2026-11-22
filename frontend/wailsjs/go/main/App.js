@@ -6,48 +6,16 @@ export function AbmGuardar(arg1) {
   return window['go']['main']['App']['AbmGuardar'](arg1);
 }
 
-export function AbrirArchivo(arg1) {
-  return window['go']['main']['App']['AbrirArchivo'](arg1);
-}
-
-export function BoletaConfigGuardar(arg1) {
-  return window['go']['main']['App']['BoletaConfigGuardar'](arg1);
-}
-
-export function BoletaConfigObtener() {
-  return window['go']['main']['App']['BoletaConfigObtener']();
-}
-
-export function GenerarBoletaPdf(arg1) {
-  return window['go']['main']['App']['GenerarBoletaPdf'](arg1);
-}
-
-export function GenerarReportePdf(arg1) {
-  return window['go']['main']['App']['GenerarReportePdf'](arg1);
-}
-
-export function InicioResumen() {
-  return window['go']['main']['App']['InicioResumen']();
-}
-
-export function ReportesListar(arg1) {
-  return window['go']['main']['App']['ReportesListar'](arg1);
-}
-
 export function AbmListar(arg1) {
   return window['go']['main']['App']['AbmListar'](arg1);
 }
 
+export function AbrirArchivo(arg1) {
+  return window['go']['main']['App']['AbrirArchivo'](arg1);
+}
+
 export function AbrirSistemaWeb() {
   return window['go']['main']['App']['AbrirSistemaWeb']();
-}
-
-export function BalanzaGuardarConfig(arg1) {
-  return window['go']['main']['App']['BalanzaGuardarConfig'](arg1);
-}
-
-export function BalanzaObtenerConfig() {
-  return window['go']['main']['App']['BalanzaObtenerConfig']();
 }
 
 export function AlternarBalanza() {
@@ -60,6 +28,22 @@ export function Autenticar(arg1, arg2) {
 
 export function AvisoLoginInicial() {
   return window['go']['main']['App']['AvisoLoginInicial']();
+}
+
+export function BalanzaGuardarConfig(arg1) {
+  return window['go']['main']['App']['BalanzaGuardarConfig'](arg1);
+}
+
+export function BalanzaObtenerConfig() {
+  return window['go']['main']['App']['BalanzaObtenerConfig']();
+}
+
+export function BoletaConfigGuardar(arg1) {
+  return window['go']['main']['App']['BoletaConfigGuardar'](arg1);
+}
+
+export function BoletaConfigObtener() {
+  return window['go']['main']['App']['BoletaConfigObtener']();
 }
 
 export function CapturarPeso() {
@@ -78,24 +62,16 @@ export function EstadoIntegrado() {
   return window['go']['main']['App']['EstadoIntegrado']();
 }
 
-export function ProductVersion() {
-  return window['go']['main']['App']['ProductVersion']();
+export function GenerarBoletaPdf(arg1) {
+  return window['go']['main']['App']['GenerarBoletaPdf'](arg1);
 }
 
-export function SesionActual() {
-  return window['go']['main']['App']['SesionActual']();
+export function GenerarReportePdf(arg1) {
+  return window['go']['main']['App']['GenerarReportePdf'](arg1);
 }
 
-export function SincronizarAhora() {
-  return window['go']['main']['App']['SincronizarAhora']();
-}
-
-export function SolicitarSistemaCompleto(arg1) {
-  return window['go']['main']['App']['SolicitarSistemaCompleto'](arg1);
-}
-
-export function VolverAModoIntegrado() {
-  return window['go']['main']['App']['VolverAModoIntegrado']();
+export function InicioResumen() {
+  return window['go']['main']['App']['InicioResumen']();
 }
 
 export function PesajeActualizarTara(arg1) {
@@ -110,16 +86,16 @@ export function PesajeBoleta(arg1) {
   return window['go']['main']['App']['PesajeBoleta'](arg1);
 }
 
+export function PesajeCambiarEstado(arg1, arg2) {
+  return window['go']['main']['App']['PesajeCambiarEstado'](arg1, arg2);
+}
+
 export function PesajeCapturarBruto() {
   return window['go']['main']['App']['PesajeCapturarBruto']();
 }
 
 export function PesajeCapturarTara() {
   return window['go']['main']['App']['PesajeCapturarTara']();
-}
-
-export function PesajeCambiarEstado(arg1, arg2) {
-  return window['go']['main']['App']['PesajeCambiarEstado'](arg1, arg2);
 }
 
 export function PesajeCerrar() {
@@ -164,4 +140,28 @@ export function PesajeOpciones() {
 
 export function PesajeRegistrar(arg1) {
   return window['go']['main']['App']['PesajeRegistrar'](arg1);
+}
+
+export function ProductVersion() {
+  return window['go']['main']['App']['ProductVersion']();
+}
+
+export function ReportesListar(arg1) {
+  return window['go']['main']['App']['ReportesListar'](arg1);
+}
+
+export function SesionActual() {
+  return window['go']['main']['App']['SesionActual']();
+}
+
+export function SincronizarAhora() {
+  return window['go']['main']['App']['SincronizarAhora']();
+}
+
+export function SolicitarSistemaCompleto(arg1) {
+  return window['go']['main']['App']['SolicitarSistemaCompleto'](arg1);
+}
+
+export function VolverAModoIntegrado() {
+  return window['go']['main']['App']['VolverAModoIntegrado']();
 }

@@ -11,8 +11,10 @@
     "email": "daynorcorit@gmail.com"
   },
   "info": {
+    "companyName": "AGETIC",
     "productName": "Sistema de Pesaje",
     "productVersion": "0.1.0",
+    "copyright": "Copyright © 2026",
     "comments": "Sistema de pesaje con báscula — port Go/Wails del módulo Java"
   }
 }

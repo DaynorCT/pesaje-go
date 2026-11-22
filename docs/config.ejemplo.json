@@ -1,0 +1,9 @@
+{
+  "url": "http://localhost:3000",
+  "apikey": "",
+  "autoenviar": true,
+  "modo_operacion": "INTEGRADO",
+  "alwaysontop": true,
+  "timeout_http": 4000,
+  "ciclo_catalogos": 5
+}

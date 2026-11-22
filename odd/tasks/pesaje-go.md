@@ -21,12 +21,12 @@ S6. Reutilizar `%APPDATA%\SistemaPesaje` (y paths equivalentes): misma `pesaje.d
 | T4 | S2,S3 | Modo integrado 480×680, always-on-top, barra superior (paridad `ModoIntegradoPane`) | inline | `bbdaa78` |
 | T5 | S2,S3 | Shell + navegación + menú usuario (paridad `ShellPane`/`Navegacion`) | inline | `b57ecc1` |
 | T6 | S2 | Báscula RS232 + parser + tests | inline | `887d2d1` |
-| T7 | S2 | Módulo pesaje (captura, grilla, quick-add) | inline | en curso |
-| T8 | S2 | Catálogos ABM + empresas/logo + usuarios | inline | en curso |
-| T9 | S2 | Dashboard + reportes PDF + vista previa | inline | en curso |
+| T7 | S2 | Módulo pesaje (captura, grilla, quick-add) | inline | done |
+| T8 | S2 | Catálogos ABM + empresas/logo + usuarios | inline | done |
+| T9 | S2 | Dashboard + reportes PDF + vista previa | inline | done |
 | T10 | S2,S6 | Sync motor/outbox (paridad tests Java) | worker | done |
-| T11 | S5 | Build `sistema-pesaje.exe` + guía instalación Windows | inline | |
-| T12 | S1,S2 | Verificación: tests Go + checklist paridad visual por pantalla | inline | |
+| T11 | S5 | Build `sistema-pesaje.exe` + guía instalación Windows | inline | done |
+| T12 | S1,S2 | Verificación: tests Go + checklist paridad visual por pantalla | inline | done |
 
 ## Log
 
@@ -39,4 +39,6 @@ L6. T7: pantalla Pesaje conectada a Go (combos, captura bruto/tara, grilla, quic
 L7. T8: PanelAbm genérico + ABM vehículos/choferes/proveedores/productos/orígenes/destinos/empresas/usuarios; pantalla Balanza (config RS232 en BD).
 L8. T9: Inicio (resumen), Reportes (filtros + PDF), Boleta config; PDF gofpdf + abrir con visor del SO; logo en boleta PDF pendiente de paridad fina.
 L9. T10: `internal/sync` (policy, outbox, sesión HTTP, motor push/pull, aplicador delta); servicio + auto-sync; bindings EnviarPeso/SincronizarAhora; encolar en PesajeRegistrar; tests policy + motor.
+L10. T11: `README-WINDOWS.md`, `docs/config.ejemplo.json`, scripts `build-windows.sh`/`.ps1`; build verificado `build/bin/sistema-pesaje.exe` (wails windows/amd64).
+L11. T12: `docs/T12-VERIFICACION.md`, `scripts/verify.sh`; checklist por pantalla; brechas ⚠️ logo PDF, preview embebida, logo empresas ABM.
 

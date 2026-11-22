@@ -172,14 +172,19 @@ function pintarContenido(host: HTMLElement, mod: ReturnType<typeof porId>): (() 
   return montarCatalogo(host, mod.id) ?? undefined;
   }
   host.className = 'shell-contenido';
-  const extra = mod.pendienteEn
-    ? `<p class="subtitulo">Implementación programada en <strong>${mod.pendienteEn}</strong> (paridad Java).</p>`
-    : '';
+  if (mod.id === 'catalogo' || mod.id === 'config') {
+    host.innerHTML = `
+      <section class="tarjeta shell-panel">
+        <h2 class="titulo-tarjeta">${mod.titulo}</h2>
+        <p class="subtitulo">Elija una opción del submenú en la barra superior.</p>
+      </section>
+    `;
+    return undefined;
+  }
   host.innerHTML = `
     <section class="tarjeta shell-panel">
       <h2 class="titulo-tarjeta">${mod.titulo}</h2>
-      ${extra}
-      <p class="subtitulo">Shell T5 — navegación y cabecera alineadas a <code>ShellPane</code> / <code>Navegacion</code>.</p>
+      <p class="subtitulo">Módulo no disponible.</p>
     </section>
   `;
   return undefined;

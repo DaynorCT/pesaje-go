@@ -16,6 +16,12 @@ func TestGenerarBoletaProducePDF(t *testing.T) {
 	if err != nil || len(b) < 4 || string(b[:4]) != "%PDF" {
 		t.Fatalf("pdf boleta invalido: len=%d err=%v", len(b), err)
 	}
+	if len(datos.LogoSistemaJPEG()) == 0 {
+		t.Fatal("logo del sistema no embebido")
+	}
+	if len(b) < 8000 {
+		t.Fatalf("pdf boleta sin imagen esperada: len=%d", len(b))
+	}
 }
 
 func TestGenerarReporteProducePDF(t *testing.T) {
