@@ -6,6 +6,7 @@ import { montarBalanza } from './modulos/balanza';
 import { montarInicio } from './modulos/inicio';
 import { montarReportes } from './modulos/reportes';
 import { montarBoletaConfig } from './modulos/boleta-config';
+import { insertarIconoModulo } from './iconos-modulo';
 import { deGrupo, porId, principales, type ModuloId } from './navegacion';
 import {
   AbrirSistemaWeb,
@@ -102,8 +103,19 @@ function pintarNav(
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'item-menu shell-item-menu';
-    btn.textContent = m.titulo;
     if (estaActivo) btn.classList.add('activo');
+    insertarIconoModulo(btn, m.id);
+    const etiqueta = document.createElement('span');
+    etiqueta.className = 'shell-item-label';
+    etiqueta.textContent = m.titulo;
+    btn.appendChild(etiqueta);
+    if (hijos.length > 0) {
+      const chevron = document.createElement('span');
+      chevron.className = 'shell-item-chevron';
+      chevron.setAttribute('aria-hidden', 'true');
+      chevron.textContent = '▾';
+      btn.appendChild(chevron);
+    }
     ancla.appendChild(btn);
 
     if (hijos.length > 0) {
@@ -144,8 +156,11 @@ function alternarSubmenu(
   for (const h of hijos) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'item-menu';
-    b.textContent = h.titulo;
+    b.className = 'item-menu shell-submenu-item';
+    insertarIconoModulo(b, h.id);
+    const lab = document.createElement('span');
+    lab.textContent = h.titulo;
+    b.appendChild(lab);
     b.addEventListener('click', (ev) => {
       ev.stopPropagation();
       cerrarSubmenus(document);

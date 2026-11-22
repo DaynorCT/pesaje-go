@@ -305,6 +305,9 @@ input.password-field:focus {
 }
 
 .shell-item-menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -314,14 +317,67 @@ input.password-field:focus {
   color: #52616f;
 }
 
+.shell-item-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+  color: var(--pesaje-primario);
+  opacity: 0.92;
+}
+
+.shell-item-icon svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.shell-item-menu.activo .shell-item-icon {
+  opacity: 1;
+  color: var(--pesaje-primario);
+}
+
+.shell-item-label {
+  white-space: nowrap;
+}
+
+.shell-item-chevron {
+  font-size: 10px;
+  opacity: 0.55;
+  margin-left: 2px;
+}
+
+.shell-submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shell-submenu-item .shell-item-icon {
+  color: var(--pesaje-primario);
+}
+
+.shell-submenu-item .shell-item-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
 .shell-item-menu.activo {
   background-color: var(--pesaje-primario-suave);
-  color: var(--pesaje-primario);
-  font-weight: bold;
+  color: var(--pesaje-titulo);
+  font-weight: normal;
+}
+
+.shell-item-menu.activo .shell-item-chevron {
+  opacity: 0.7;
+  color: var(--pesaje-titulo);
 }
 
 .shell-item-menu:hover {
   background-color: #f3f4f6;
+}
+
+.shell-nav .shell-item-menu.activo:hover {
+  background-color: var(--pesaje-primario-suave);
 }
 
 .shell-usuario {
