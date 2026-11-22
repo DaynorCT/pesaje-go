@@ -1,0 +1,36 @@
+/* Web port of jacobitus.css (T1). Source: jacobitus-escritorio/pesaje/src/main/resources/jacobitus.css */
+
+.version-banner {
+    background-color: #9a3412;
+    color: white;
+    font-weight: bold;
+    padding: 7px 10px 7px 10px;
+}
+
+.progress-bar {
+    background-color: transparent;
+    padding: 0px;
+}
+
+.progress-bar .track {
+    background-color: #f1f5f9;
+    border-radius: 0;
+}
+
+.progress-bar .bar {
+    border-radius: 0;
+    padding: 2px;
+}
+
+.progress-bar.progress-bar-prerelease .bar {
+    background-color: #eab308;
+}
+
+.prerelease-theme .progress-bar .bar {
+    background-color: #eab308;
+}
+
+.table-view.tabla-sin-scroll-horizontal .scroll-bar:horizontal {
+    opacity: 0;
+    padding: 0px;
+}

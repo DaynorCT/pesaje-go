@@ -1,0 +1,47 @@
+.scaffold {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.scaffold-logo {
+  width: 120px;
+  height: auto;
+  margin-bottom: 16px;
+}
+
+.scaffold h1 {
+  color: var(--pesaje-titulo);
+  font-size: 22px;
+  font-weight: bold;
+  margin: 0 0 8px;
+}
+
+.scaffold .subtitulo {
+  color: var(--pesaje-texto-secundario);
+  margin: 0 0 24px;
+}
+
+.scaffold .tarjeta {
+  background-color: var(--pesaje-tarjeta);
+  border: 1px solid var(--pesaje-borde);
+  border-radius: 8px;
+  padding: 16px 24px;
+  max-width: 420px;
+  text-align: center;
+}
+
+.scaffold .version-banner {
+  display: inline-block;
+  background-color: var(--pesaje-primario);
+  color: #fff;
+  font-weight: bold;
+  padding: 7px 10px;
+  border-radius: 4px;
+  margin-top: 12px;
+}
+

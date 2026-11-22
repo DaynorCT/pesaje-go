@@ -1,0 +1,14 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background-color: var(--pesaje-fondo);
+  color: var(--pesaje-texto);
+  font-family: var(--pesaje-font-family);
+  font-size: var(--pesaje-font-size);
+}
+
+#app {
+  min-height: 100vh;
+}
+

@@ -1,0 +1,27 @@
+/*
+ * CSS custom properties from bo.firmadigital.jacobitus.pesaje.ui.Tema (Java).
+ * Single source of palette for the Wails frontend.
+ */
+:root {
+  --pesaje-fondo: #f7f8fa;
+  --pesaje-tarjeta: #ffffff;
+  --pesaje-borde: #e0e0e0;
+  --pesaje-texto: #1f2933;
+  --pesaje-texto-secundario: #5f6c7b;
+  --pesaje-titulo: #263238;
+  --pesaje-primario: #9a3412;
+  --pesaje-primario-suave: #f6ece6;
+  --pesaje-exito: #1b6e3c;
+  --pesaje-exito-suave: #e8f4ec;
+  --pesaje-error: #b42318;
+  --pesaje-error-suave: #fdecea;
+  --pesaje-aviso: #8a5a00;
+  --pesaje-aviso-suave: #fdf4e3;
+  --pesaje-info: #2a7ae2;
+  --pesaje-info-suave: #e8f1fd;
+
+  --pesaje-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --pesaje-font-size: 13px;
+}
+

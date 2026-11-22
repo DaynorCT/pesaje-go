@@ -1,0 +1,18 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "sistema-pesaje",
+  "outputfilename": "sistema-pesaje",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "daynorCT",
+    "email": "daynorcorit@gmail.com"
+  },
+  "info": {
+    "productName": "Sistema de Pesaje",
+    "productVersion": "0.1.0",
+    "comments": "Sistema de pesaje con báscula — port Go/Wails del módulo Java"
+  }
+}
