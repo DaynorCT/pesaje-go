@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"sistema-pesaje/internal/auth"
+	"sistema-pesaje/internal/balanza"
 	"sistema-pesaje/internal/config"
 	"sistema-pesaje/internal/datos"
 
@@ -23,6 +24,7 @@ type App struct {
 	muIntegrado sync.Mutex
 	integrado   estadoIntegrado
 	sesion      *UsuarioDTO
+	balanzaSvc  *balanza.Servicio
 }
 
 type estadoIntegrado struct {
@@ -177,22 +179,36 @@ func (a *App) construirEstado() EstadoIntegradoDTO {
 
 func (a *App) AlternarBalanza() AccionDTO {
 	a.muIntegrado.Lock()
-	defer a.muIntegrado.Unlock()
-	if a.integrado.conectado {
+	conectado := a.integrado.conectado
+	a.muIntegrado.Unlock()
+	if conectado {
+		a.detenerBalanza()
+		a.muIntegrado.Lock()
 		a.integrado.conectado = false
 		a.integrado.pesoVivo = 0
 		a.integrado.pesoCapturado = 0
 		est := a.construirEstadoUnlocked()
+		a.muIntegrado.Unlock()
 		return AccionDTO{OK: true, Estado: &est}
 	}
-	// T6: RS232 real; por ahora dejamos desconectado con aviso.
-	aviso := &AvisoDTO{
-		Titulo:  "Balanza",
-		Mensaje: "La conexión RS232 llega en T6. Por ahora la báscula permanece desconectada.",
-		EsError: false,
+	if a.db == nil {
+		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Balanza", Mensaje: "Base de datos no disponible.", EsError: true}}
 	}
-	est := a.construirEstadoUnlocked()
-	return AccionDTO{OK: false, Aviso: aviso, Estado: &est}
+	cfg := a.db.ObtenerConfigBalanza()
+	if !a.iniciarBalanza(cfg) {
+		msg := "No se pudo abrir el puerto " + cfg.PuertoCOM + "."
+		if a.balanzaSvc != nil {
+			if e := a.balanzaSvc.UltimoError(); e != "" {
+				msg = e
+			}
+		}
+		if datos.UsarBalanzaSimulada(cfg) {
+			msg = "No se pudo iniciar la báscula simulada."
+		}
+		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Balanza", Mensaje: msg}}
+	}
+	est := a.construirEstado()
+	return AccionDTO{OK: true, Estado: &est}
 }
 
 func (a *App) construirEstadoUnlocked() EstadoIntegradoDTO {
@@ -282,6 +298,7 @@ func (a *App) SolicitarSistemaCompleto(contrasena string) AccionDTO {
 }
 
 func (a *App) CerrarSesion() {
+	a.detenerBalanza()
 	a.muIntegrado.Lock()
 	a.integrado = estadoIntegrado{}
 	a.muIntegrado.Unlock()

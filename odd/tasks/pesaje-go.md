@@ -20,7 +20,7 @@ S6. Reutilizar `%APPDATA%\SistemaPesaje` (y paths equivalentes): misma `pesaje.d
 | T3 | S2,S3 | Pantalla login (HTML/CSS paridad `LoginPane` + logo) | inline | `854ba75` |
 | T4 | S2,S3 | Modo integrado 480×680, always-on-top, barra superior (paridad `ModoIntegradoPane`) | inline | `bbdaa78` |
 | T5 | S2,S3 | Shell + navegación + menú usuario (paridad `ShellPane`/`Navegacion`) | inline | |
-| T6 | S2 | Báscula RS232 + parser + tests | inline | |
+| T6 | S2 | Báscula RS232 + parser + tests | inline | (pendiente commit) |
 | T7 | S2 | Módulo pesaje (captura, grilla, quick-add) | inline | |
 | T8 | S2 | Catálogos ABM + empresas/logo + usuarios | inline | |
 | T9 | S2 | Dashboard + reportes PDF + vista previa | inline | |
