@@ -32,6 +32,15 @@ wails dev
 
 Frontend (Vite) en caliente; bindings Go vía Wails.
 
+### Báscula en desarrollo (macOS sin puerto COM)
+
+```bash
+export PESAJE_BALANZA_SIM=1
+wails dev
+```
+
+O configurá `puerto_com` = `SIM` en `config_balanza`. En Windows usa el puerto real (`COM1`, etc.).
+
 ## Build producción
 
 ```bash
