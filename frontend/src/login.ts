@@ -62,7 +62,9 @@ export function montarLogin(contenedor: HTMLElement): void {
     Autenticar(email.value.trim(), clave.value)
       .then((res: LoginRespuesta) => {
         if (res.exito && res.usuario) {
-          montarPostLogin(contenedor, res);
+          import('./modo-integrado').then(({ montarModoIntegrado }) =>
+            montarModoIntegrado(contenedor, res.usuario!),
+          );
           return;
         }
         mensaje.textContent = res.mensaje || 'No se pudo iniciar sesión.';
@@ -80,23 +82,3 @@ export function montarLogin(contenedor: HTMLElement): void {
   email.focus();
 }
 
-function montarPostLogin(contenedor: HTMLElement, res: LoginRespuesta): void {
-  const nombre = res.usuario?.nombre || res.usuario?.email || '';
-  contenedor.innerHTML = `
-    <div class="login-shell root">
-      <div class="tarjeta login login-ok">
-        <h1 class="titulo-modulo">Sesión iniciada</h1>
-        <p class="subtitulo">Bienvenido, <strong>${escapeHtml(nombre)}</strong>.</p>
-        <p class="subtitulo">T4 (modo integrado) sigue pendiente; la ventana ya quedó en 480×680.</p>
-      </div>
-    </div>
-  `;
-}
-
-function escapeHtml(texto: string): string {
-  return texto
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}

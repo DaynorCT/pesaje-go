@@ -18,7 +18,7 @@ S6. Reutilizar `%APPDATA%\SistemaPesaje` (y paths equivalentes): misma `pesaje.d
 | T1 | S1,S3,S4,S5 | Scaffold Wails, copiar assets/CSS (web), tema CSS variables desde `Tema.java`, README build Windows | pesaje-go/ | `cd970ae` |
 | T2 | S2,S6 | SQLite + esquema + seed admin + tests auth (paridad `AuthServiceTest`) | inline | `21a3e5e` |
 | T3 | S2,S3 | Pantalla login (HTML/CSS paridad `LoginPane` + logo) | inline | `854ba75` |
-| T4 | S2,S3 | Modo integrado 480×680, always-on-top, barra superior (paridad `ModoIntegradoPane`) | inline | |
+| T4 | S2,S3 | Modo integrado 480×680, always-on-top, barra superior (paridad `ModoIntegradoPane`) | inline | (pendiente commit) |
 | T5 | S2,S3 | Shell + navegación + menú usuario (paridad `ShellPane`/`Navegacion`) | inline | |
 | T6 | S2 | Báscula RS232 + parser + tests | inline | |
 | T7 | S2 | Módulo pesaje (captura, grilla, quick-add) | inline | |
@@ -33,4 +33,5 @@ S6. Reutilizar `%APPDATA%\SistemaPesaje` (y paths equivalentes): misma `pesaje.d
 L1. "quiero q este siusteam lo pasae a go tal como esta sus funcioanldias diseño colores stylo tipografia etc me dejo entender ??"
 L2. Usuario abrió `/Users/jaru/dev/firma/pesaje-go` como carpeta de proyecto en Cursor para continuar la migración (T1).
 L3. T3 login: pantalla paridad LoginPane, bindings Autenticar/AvisoLoginInicial, ventana 460→480 tras éxito.
+L4. T4 modo integrado: UI barra + registro peso; alwaysontop desde config.json; balanza/sync en T6/T10.
 

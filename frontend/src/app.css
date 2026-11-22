@@ -115,6 +115,156 @@ input.password-field:focus {
   text-align: center;
 }
 
+.modo-integrado {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--pesaje-fondo);
+}
+
+.barra-superior {
+  background: var(--pesaje-tarjeta);
+  border-bottom: 1px solid var(--pesaje-primario-suave);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.barra-fila-principal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.barra-logo img {
+  display: block;
+  max-width: 160px;
+  height: auto;
+}
+
+.barra-acciones {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.menu-contenedor {
+  position: relative;
+}
+
+.menu-flotante {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 200px;
+  background: var(--pesaje-tarjeta);
+  border: 1px solid var(--pesaje-borde);
+  border-radius: 6px;
+  padding: 6px;
+  z-index: 20;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.menu-flotante button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--pesaje-texto);
+}
+
+.menu-flotante button:hover {
+  background: #f3f4f6;
+}
+
+.menu-flotante hr {
+  border: none;
+  border-top: 1px solid var(--pesaje-borde);
+  margin: 4px 0;
+}
+
+.barra-fila-estado {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.integrado-centro {
+  flex: 1;
+  padding: 16px;
+}
+
+.integrado-tarjeta {
+  max-width: 100%;
+}
+
+.integrado-encabezado {
+  padding: 12px 16px;
+}
+
+.integrado-cuerpo {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.display-peso {
+  background: var(--pesaje-tarjeta);
+  border: 3px solid var(--pesaje-primario);
+  border-radius: 8px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.separador-horizontal {
+  background: var(--pesaje-borde);
+  height: 1px;
+  width: 100%;
+}
+
+.tarjeta-sin-padding {
+  padding: 0;
+}
+
+.integrado-ancho {
+  width: 100%;
+  cursor: pointer;
+  border: 1px solid var(--pesaje-borde);
+  font: inherit;
+}
+
+.integrado-captura {
+  text-align: center;
+  margin: 0;
+}
+
+.dlg-aviso::backdrop {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.dlg-contenido {
+  border: none;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dlg-acciones {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .scaffold .version-banner {
   display: inline-block;
   background-color: var(--pesaje-primario);
