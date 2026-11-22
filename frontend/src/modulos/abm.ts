@@ -47,7 +47,7 @@ function etiquetaEstadoSwitch(activo: boolean): string {
 function htmlCeldaEstado(_estado: string, activo: boolean): string {
   const texto = etiquetaEstadoSwitch(activo);
   const clase = activo ? 'estado-etiqueta--activo' : 'estado-etiqueta--inactivo';
-  return `<td class="abm-celda-estado"><span class="estado-etiqueta ${clase}">${texto}</span></td>`;
+  return `<td class="tabla-celda-estado"><span class="estado-etiqueta ${clase}">${texto}</span></td>`;
 }
 
 function actualizarTextoEstado(tr: HTMLTableRowElement, _estado: string, activo: boolean): void {
@@ -78,7 +78,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
           <button type="button" class="boton-primario" id="abm-crear">Crear ${entLabel}</button>
         </div>
       </header>
-      <div class="abm-tabla-wrap tarjeta tarjeta-sin-padding">
+      <div class="tabla-modulo-wrap tarjeta tarjeta-sin-padding">
         <table class="tabla-modulo" id="abm-tabla">
           <thead><tr id="abm-head"></tr></thead>
           <tbody id="abm-body"></tbody>
@@ -100,7 +100,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
   const head = host.querySelector('#abm-head') as HTMLTableRowElement;
   head.innerHTML =
     cfg.columnas.map((c) => `<th>${c.titulo}</th>`).join('') +
-    '<th class="abm-th-estado">Estado</th><th class="abm-th-acciones">Acciones</th>';
+    '<th class="tabla-th-estado">Estado</th><th class="tabla-th-acciones">Acciones</th>';
 
   const camposHost = host.querySelector('#abm-campos') as HTMLElement;
   camposHost.innerHTML = cfg.campos
@@ -277,7 +277,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
       tr.innerHTML =
         celdas +
         htmlCeldaEstado(f.estado, activo) +
-        `<td class="abm-celda-acciones">
+        `<td class="tabla-celda-acciones">
           <button type="button" class="abm-btn-editar" data-tip="Editar ${entLabel}" aria-label="Editar ${entLabel}">${ICONO_LAPIZ}</button>
           <label class="abm-switch" data-tip="${estadoTxt}">
             <input type="checkbox" class="abm-switch-input" role="switch" ${activo ? 'checked' : ''} aria-label="${estadoTxt}" aria-checked="${activo ? 'true' : 'false'}" />

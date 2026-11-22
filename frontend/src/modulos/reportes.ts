@@ -28,11 +28,11 @@ export function montarReportes(host: HTMLElement): () => void {
         <button type="button" class="boton-primario" id="rep-boleta">Boleta del pesaje</button>
       </motionwrap>
       <p id="rep-mensaje" class="subtitulo"></p>
-      <motionwrap class="tarjeta tarjeta-sin-padding tabla-modulo-scroll">
-        <table class="tabla-modulo">
+      <motionwrap class="tarjeta tarjeta-sin-padding tabla-modulo-wrap">
+        <table class="tabla-modulo" id="tabla-reportes">
           <thead><tr>
             <th>Guía</th><th>Vehículo</th><th>Chofer</th><th>Proveedor</th>
-            <th>Bruto</th><th>Tara</th><th>Neto</th><th>Estado</th><th>Fecha</th>
+            <th>Bruto</th><th>Tara</th><th>Neto</th><th class="tabla-th-estado">Estado</th><th>Fecha</th>
           </tr></thead>
           <tbody id="rep-body"></tbody>
         </table>
@@ -49,6 +49,9 @@ export function montarReportes(host: HTMLElement): () => void {
     seleccion = 0;
     for (const f of filas) {
       const tr = document.createElement('tr');
+      const enProceso = f.estadoBalanza.toUpperCase() === 'EN_PROCESO';
+      const estadoTxt = f.estadoBalanza.replace(/_/g, ' ');
+      const estadoClase = enProceso ? 'proceso' : 'finalizado';
       tr.innerHTML = `
         <td>${f.guia || f.id}</td>
         <td>${f.placa}</td>
@@ -57,7 +60,7 @@ export function montarReportes(host: HTMLElement): () => void {
         <td>${f.pesoBruto}</td>
         <td>${f.tara}</td>
         <td>${f.pesoNeto}</td>
-        <td>${f.estadoBalanza}</td>
+        <td class="tabla-celda-estado"><span class="estado-etiqueta estado-etiqueta--${estadoClase}">${estadoTxt}</span></td>
         <td>${f.fecha} ${f.hora}</td>
       `;
       tr.addEventListener('click', () => {

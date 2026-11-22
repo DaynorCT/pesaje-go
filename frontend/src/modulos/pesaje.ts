@@ -105,13 +105,31 @@ export function montarPesaje(host: HTMLElement): () => void {
           </div>
         </section>
       </div>
-      <section class="tarjeta tarjeta-sin-padding pesaje-grilla-wrap">
-        <div class="tabla-modulo-scroll">
-          <table class="tabla-modulo" id="tabla-pesajes">
-            <thead><tr id="tabla-head"></tr></thead>
-            <tbody id="tabla-body"></tbody>
-          </table>
-        </div>
+      <section class="tarjeta tarjeta-sin-padding pesaje-grilla-wrap tabla-modulo-wrap pesaje-tabla-ajuste">
+        <table class="tabla-modulo tabla-modulo--ajuste-ventana" id="tabla-pesajes">
+          <colgroup>
+            <col class="pesaje-col-id" />
+            <col class="pesaje-col-texto" />
+            <col class="pesaje-col-placa" />
+            <col class="pesaje-col-corto" />
+            <col class="pesaje-col-corto" />
+            <col class="pesaje-col-texto" />
+            <col class="pesaje-col-texto" />
+            <col class="pesaje-col-texto" />
+            <col class="pesaje-col-texto" />
+            <col class="pesaje-col-num" />
+            <col class="pesaje-col-num" />
+            <col class="pesaje-col-fecha" />
+            <col class="pesaje-col-num" />
+            <col class="pesaje-col-num" />
+            <col class="pesaje-col-num" />
+            <col class="pesaje-col-estado" />
+            <col class="pesaje-col-estado" />
+            <col class="pesaje-col-acciones" />
+          </colgroup>
+          <thead><tr id="tabla-head"></tr></thead>
+          <tbody id="tabla-body"></tbody>
+        </table>
       </section>
       <div id="pesaje-dialogos"></div>
     </div>
@@ -242,10 +260,20 @@ export function montarPesaje(host: HTMLElement): () => void {
   };
 
   const columnas = [
-    'ID', 'Chofer', 'Placa', 'Licencia', 'Tipo', 'Proveedor', 'Producto', 'Origen', 'Destino',
-    'Costo (Bs)', 'Flete (Bs)', 'Fecha', 'Hora', 'P. Bruto', 'P. Tara', 'P. Neto', 'Estado', 'Estado pesaje', 'Acciones',
+    'ID', 'Chofer', 'Placa', 'Lic.', 'Tipo', 'Prov.', 'Prod.', 'Orig.', 'Dest.',
+    'Costo', 'Flete', 'Fecha', 'Bruto', 'Tara', 'Neto', 'Est.', 'Balanza', 'Acc.',
   ];
-  qs('#tabla-head').innerHTML = columnas.map((c) => `<th>${c}</th>`).join('');
+  const claseTh = (c: string) => {
+    if (c === 'Est.' || c === 'Balanza') return 'tabla-th-estado';
+    if (c === 'Acc.') return 'tabla-th-acciones';
+    return '';
+  };
+  qs('#tabla-head').innerHTML = columnas
+    .map((c) => {
+      const cl = claseTh(c);
+      return cl ? `<th class="${cl}">${c}</th>` : `<th>${c}</th>`;
+    })
+    .join('');
 
   const recargarGrilla = async () => {
     const filas = (await PesajeListarGrilla(50)) as Fila[];
@@ -257,35 +285,36 @@ export function montarPesaje(host: HTMLElement): () => void {
       const enProceso = f.estadoBalanza.toUpperCase() === 'EN_PROCESO';
       let acciones = '';
       if (activo) {
-        acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-act="estado" data-id="${f.id}">Desactivar</button> `;
+        acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-tip="Desactivar" data-act="estado" data-id="${f.id}">Des.</button> `;
         if (enProceso) {
-          acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-act="finalizar" data-id="${f.id}">Finalizar</button>`;
+          acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-tip="Finalizar pesaje" data-act="finalizar" data-id="${f.id}">Fin.</button>`;
         } else {
-          acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-act="boleta" data-id="${f.id}">Boleta</button>`;
+          acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-tip="Boleta PDF" data-act="boleta" data-id="${f.id}">Bol.</button>`;
         }
       } else {
-        acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-act="activar" data-id="${f.id}">Activar</button>`;
+        acciones += `<button type="button" class="boton-secundario boton-tabla-accion" data-tip="Reactivar" data-act="activar" data-id="${f.id}">Act.</button>`;
       }
+      const balanzaTxt = etiquetaBalanzaCorta(f.estadoBalanza);
+      const fechaHora = `${f.fecha} ${f.hora}`.trim();
       tr.innerHTML = `
-        <td>${f.id}</td>
-        <td>${mayus(f.nombreChofer)}</td>
-        <td>${mayus(f.placa)}</td>
-        <td>${mayus(f.licencia)}</td>
-        <td>${mayus(f.tipoVehiculo)}</td>
-        <td>${mayus(f.nombreProveedor)}</td>
-        <td>${mayus(f.producto)}</td>
-        <td>${mayus(f.origen)}</td>
-        <td>${mayus(f.destino)}</td>
-        <td>${f.costoBs}</td>
-        <td>${f.fleteBs}</td>
-        <td>${f.fecha}</td>
-        <td>${f.hora}</td>
-        <td>${f.pesoBruto}</td>
-        <td>${f.tara}</td>
-        <td>${f.pesoNeto}</td>
-        <td><span class="estado-etiqueta estado-etiqueta--${activo ? 'activo' : 'inactivo'}">${activo ? 'ACTIVO' : 'INACTIVO'}</span></td>
-        <td><span class="estado-etiqueta estado-etiqueta--${enProceso ? 'proceso' : 'finalizado'}">${f.estadoBalanza.replace('_', ' ')}</span></td>
-        <td class="pesaje-celda-acciones">${acciones}</td>
+        ${tdCelda(String(f.id))}
+        ${tdCelda(mayus(f.nombreChofer))}
+        ${tdCelda(mayus(f.placa))}
+        ${tdCelda(mayus(f.licencia))}
+        ${tdCelda(mayus(f.tipoVehiculo))}
+        ${tdCelda(mayus(f.nombreProveedor))}
+        ${tdCelda(mayus(f.producto))}
+        ${tdCelda(mayus(f.origen))}
+        ${tdCelda(mayus(f.destino))}
+        ${tdCelda(String(f.costoBs))}
+        ${tdCelda(String(f.fleteBs))}
+        ${tdCelda(fechaHora)}
+        ${tdCelda(String(f.pesoBruto))}
+        ${tdCelda(String(f.tara))}
+        ${tdCelda(String(f.pesoNeto))}
+        <td class="tabla-celda-estado" title="${escapeAttr(activo ? 'ACTIVO' : 'INACTIVO')}"><span class="estado-etiqueta estado-etiqueta--${activo ? 'activo' : 'inactivo'}">${activo ? 'ACT.' : 'INA.'}</span></td>
+        <td class="tabla-celda-estado" title="${escapeAttr(f.estadoBalanza.replace(/_/g, ' '))}"><span class="estado-etiqueta estado-etiqueta--${enProceso ? 'proceso' : 'finalizado'}">${balanzaTxt}</span></td>
+        <td class="tabla-celda-acciones">${acciones}</td>
       `;
       body.appendChild(tr);
     }
@@ -456,6 +485,20 @@ function opcionId(root: HTMLElement, selId: string): number | undefined {
 
 function mayus(s: string): string {
   return (s || '').toUpperCase();
+}
+
+function etiquetaBalanzaCorta(estado: string): string {
+  const u = (estado || '').toUpperCase();
+  if (u === 'EN_PROCESO') return 'PROC.';
+  if (u === 'FINALIZADO') return 'FIN.';
+  return mayus(estado).replace(/_/g, ' ').slice(0, 8);
+}
+
+function tdCelda(texto: string, clases = ''): string {
+  const t = texto ?? '';
+  const cls = clases ? ` class="${clases}"` : '';
+  const tip = t ? ` title="${escapeAttr(t)}"` : '';
+  return `<td${cls}${tip}>${escapeHtml(t)}</td>`;
 }
 
 function escapeHtml(s: string): string {
