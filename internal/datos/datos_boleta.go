@@ -67,12 +67,12 @@ func CargarDatosReporte(ctx context.Context, db *sql.DB, desde, hasta, placa str
 	q.WriteString(` WHERE p.estado = 'ACTIVO'`)
 	args := []any{}
 	if strings.TrimSpace(desde) != "" {
-		q.WriteString(` AND p.fecha_creacion >= ?`)
-		args = append(args, desde+" 00:00:00")
+		q.WriteString(` AND date(p.fecha_creacion) >= date(?)`)
+		args = append(args, strings.TrimSpace(desde))
 	}
 	if strings.TrimSpace(hasta) != "" {
-		q.WriteString(` AND p.fecha_creacion <= ?`)
-		args = append(args, hasta+" 23:59:59")
+		q.WriteString(` AND date(p.fecha_creacion) <= date(?)`)
+		args = append(args, strings.TrimSpace(hasta))
 	}
 	if strings.TrimSpace(placa) != "" {
 		q.WriteString(` AND UPPER(v.placa) LIKE ?`)

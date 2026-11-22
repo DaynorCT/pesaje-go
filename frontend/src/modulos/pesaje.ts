@@ -27,6 +27,12 @@ import {
   htmlDialogoFormGuardar,
 } from '../dialogo';
 import {
+  aMayusculas,
+  enlazarMayusculasVivo,
+  enlazarMayusculasVivoEnContenedor,
+  normalizarTextoGuardado,
+} from '../normalizar-campo';
+import {
   ICONO_BOLETA_TABLA,
   ICONO_EDITAR_TABLA,
   ICONO_FINALIZAR_TABLA,
@@ -346,19 +352,19 @@ export function montarPesaje(host: HTMLElement): () => void {
       if (!finalizado) {
         acciones += htmlSwitchFila(activo);
       }
-      const balanzaTxt = mayus(f.estadoBalanza).replace(/_/g, ' ');
+      const balanzaTxt = aMayusculas(f.estadoBalanza).replace(/_/g, ' ');
       const fechaHora = `${f.fecha} ${f.hora}`.trim();
       tr.dataset.id = String(f.id);
       tr.innerHTML = `
         ${tdCelda(String(f.id))}
-        ${tdCelda(mayus(f.nombreChofer))}
-        ${tdCelda(mayus(f.placa))}
-        ${tdCelda(mayus(f.licencia))}
-        ${tdCelda(mayus(f.tipoVehiculo))}
-        ${tdCelda(mayus(f.nombreProveedor))}
-        ${tdCelda(mayus(f.producto))}
-        ${tdCelda(mayus(f.origen))}
-        ${tdCelda(mayus(f.destino))}
+        ${tdCelda(aMayusculas(f.nombreChofer))}
+        ${tdCelda(aMayusculas(f.placa))}
+        ${tdCelda(aMayusculas(f.licencia))}
+        ${tdCelda(aMayusculas(f.tipoVehiculo))}
+        ${tdCelda(aMayusculas(f.nombreProveedor))}
+        ${tdCelda(aMayusculas(f.producto))}
+        ${tdCelda(aMayusculas(f.origen))}
+        ${tdCelda(aMayusculas(f.destino))}
         ${tdCelda(String(f.costoBs))}
         ${tdCelda(String(f.fleteBs))}
         ${tdCelda(fechaHora)}
@@ -619,6 +625,11 @@ export function montarPesaje(host: HTMLElement): () => void {
           return `<label class="pesaje-campo"${ancho}><span class="etiqueta-mini">${c}</span><input class="text-field" data-idx="${i}" value="${escapeAttr(def.defaults[i])}" /></label>`;
         })
         .join('');
+      cont.querySelectorAll<HTMLInputElement>('input[data-idx]').forEach((inp) => {
+        const label = inp.closest('label')?.querySelector('.etiqueta-mini')?.textContent ?? '';
+        if (/\btara\b/i.test(label)) inp.dataset.casing = 'preserve';
+        enlazarMayusculasVivo(inp);
+      });
       aplicarLayoutDialogoCampos(cont, def.campos.length, dlgRapido);
       dlgRapido.showModal();
     });
@@ -626,33 +637,45 @@ export function montarPesaje(host: HTMLElement): () => void {
 
   formRapido.addEventListener('submit', (ev) => {
     ev.preventDefault();
-    if (!rapidoActual) return;
-    const vals = Array.from(formRapido.querySelectorAll('input[data-idx]')).map(
-      (el) => (el as HTMLInputElement).value,
-    );
+    const def = rapidoActual;
+    if (!def) return;
+    const vals = Array.from(formRapido.querySelectorAll('input[data-idx]')).map((el) => {
+      const inp = el as HTMLInputElement;
+      if (inp.dataset.casing === 'preserve') return inp.value.trim();
+      const idx = Number(inp.dataset.idx);
+      const clave =
+        def.tipo === 'vehiculo' && idx === 0
+          ? 'placa'
+          : def.tipo === 'chofer' && idx === 0
+            ? 'nombre'
+            : 'texto';
+      return normalizarTextoGuardado(clave, inp.value);
+    });
     const fin = async () => {
       dlgRapido.close();
       await recargarOpciones();
       const e = (await PesajeEstado()) as EstadoPane;
       aplicarEstado(e);
     };
-    if (rapidoActual.tipo === 'vehiculo') {
+    if (def.tipo === 'vehiculo') {
       void PesajeCrearVehiculo(vals[0], vals[1], parseInt(vals[2], 10) || 0).then(async (r) => {
         if ((r as AccionPesaje).ok) await fin();
         else manejarAccion(r as AccionPesaje);
       });
-    } else if (rapidoActual.tipo === 'chofer') {
+    } else if (def.tipo === 'chofer') {
       void PesajeCrearChofer(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]).then(async (r) => {
         if ((r as AccionPesaje).ok) await fin();
         else manejarAccion(r as AccionPesaje);
       });
-    } else if (rapidoActual.tipo === 'proveedor') {
+    } else if (def.tipo === 'proveedor') {
       void PesajeCrearProveedor(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6]).then(async (r) => {
         if ((r as AccionPesaje).ok) await fin();
         else manejarAccion(r as AccionPesaje);
       });
     }
   });
+
+  enlazarMayusculasVivoEnContenedor(host);
 
   void PesajeEstado().then((e) => aplicarEstado(e as EstadoPane));
   void recargarOpciones();
@@ -671,10 +694,6 @@ export function montarPesaje(host: HTMLElement): () => void {
 function opcionId(root: HTMLElement, selId: string): number | undefined {
   const v = (root.querySelector(`#${selId}`) as HTMLSelectElement)?.value;
   return v ? Number(v) : undefined;
-}
-
-function mayus(s: string): string {
-  return (s || '').toUpperCase();
 }
 
 function tdCelda(texto: string, clases = ''): string {

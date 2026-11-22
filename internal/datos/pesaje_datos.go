@@ -83,7 +83,7 @@ type NuevoPesaje struct {
 	EstadoBalanza      string
 }
 
-const listarPesajesSQL = `
+const listarPesajesSelect = `
 SELECT p.id, p.guia,
        TRIM(COALESCE(cper.nombre, '') || ' ' || COALESCE(cper.apellido_paterno, '')
             || ' ' || COALESCE(cper.apellido_materno, '')) AS chofer,
@@ -104,7 +104,9 @@ LEFT JOIN proveedores pr ON pr.id = p.proveedor_id
 LEFT JOIN personas pper ON pper.id = pr.persona_id
 LEFT JOIN productos prod ON prod.id = p.producto_id
 LEFT JOIN origenes o ON o.id = p.id_origen
-LEFT JOIN destinos d ON d.id = p.id_destino
+LEFT JOIN destinos d ON d.id = p.id_destino`
+
+const listarPesajesSQL = listarPesajesSelect + `
 WHERE p.estado IN ('ACTIVO', 'INACTIVO')
 ORDER BY p.id DESC LIMIT ?`
 
@@ -200,6 +202,37 @@ func ListarPesajes(ctx context.Context, db *sql.DB, limite int) ([]FilaPesaje, e
 		limite = 50
 	}
 	rows, err := db.QueryContext(ctx, listarPesajesSQL, limite)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return escanearFilasPesaje(rows)
+}
+
+// ListarPesajesFiltrado listado para reportes (solo ACTIVO; mismos criterios que el PDF).
+func ListarPesajesFiltrado(ctx context.Context, db *sql.DB, desde, hasta, placa string, limite int) ([]FilaPesaje, error) {
+	if limite <= 0 {
+		limite = 200
+	}
+	q := strings.Builder{}
+	q.WriteString(listarPesajesSelect)
+	q.WriteString(` WHERE p.estado = 'ACTIVO'`)
+	args := []any{}
+	if strings.TrimSpace(desde) != "" {
+		q.WriteString(` AND date(p.fecha_creacion) >= date(?)`)
+		args = append(args, strings.TrimSpace(desde))
+	}
+	if strings.TrimSpace(hasta) != "" {
+		q.WriteString(` AND date(p.fecha_creacion) <= date(?)`)
+		args = append(args, strings.TrimSpace(hasta))
+	}
+	if strings.TrimSpace(placa) != "" {
+		q.WriteString(` AND UPPER(v.placa) LIKE ?`)
+		args = append(args, "%"+strings.ToUpper(strings.TrimSpace(placa))+"%")
+	}
+	q.WriteString(` ORDER BY p.id DESC LIMIT ?`)
+	args = append(args, limite)
+	rows, err := db.QueryContext(ctx, q.String(), args...)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,5 @@
 import { BoletaConfigGuardar, BoletaConfigObtener } from '../../wailsjs/go/main/App';
+import { enlazarMayusculasVivoEnContenedor, normalizarTextoGuardado } from '../normalizar-campo';
 
 const CAMPOS: { clave: string; etiqueta: string }[] = [
   { clave: 'salida', etiqueta: 'Salida' },
@@ -29,6 +30,8 @@ export function montarBoletaConfig(host: HTMLElement): () => void {
       `<label class="pesaje-campo"><span class="etiqueta-mini">${c.etiqueta}</span>
       <input class="text-field" id="bol-${c.clave}" data-k="${c.clave}" /></label>`,
   ).join('');
+
+  enlazarMayusculasVivoEnContenedor(cont);
 
   void BoletaConfigObtener().then((cfg) => {
     const c = cfg as {
@@ -64,7 +67,8 @@ export function montarBoletaConfig(host: HTMLElement): () => void {
       acreditacion: '',
     } as Record<string, string | number>;
     for (const f of CAMPOS) {
-      dto[f.clave] = (host.querySelector(`#bol-${f.clave}`) as HTMLInputElement).value;
+      const raw = (host.querySelector(`#bol-${f.clave}`) as HTMLInputElement).value;
+      dto[f.clave] = normalizarTextoGuardado(f.clave, raw);
     }
     const res = (await BoletaConfigGuardar(dto as never)) as { ok: boolean; mensaje: string };
     (host.querySelector('#boleta-msg') as HTMLElement).textContent = res.mensaje;

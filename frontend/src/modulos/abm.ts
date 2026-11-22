@@ -1,5 +1,9 @@
 import { AbmGuardar, AbmListar } from '../../wailsjs/go/main/App';
 import { aplicarLayoutDialogoCampos, enlazarDialogo, htmlDialogoFormGuardar } from '../dialogo';
+import {
+  enlazarMayusculasVivoEnContenedor,
+  normalizarTextoGuardado,
+} from '../normalizar-campo';
 import { ICONO_EDITAR_TABLA, sincronizarSwitchEstado } from '../tablas-acciones';
 
 export type CampoAbm = {
@@ -103,10 +107,14 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
           <select class="combo-web" id="campo-${f.clave}">${opts}</select></label>`;
       }
       const type = f.tipo === 'password' ? 'password' : 'text';
+      const casing =
+        f.tipo === 'password' || f.clave === 'correo' ? ' data-casing="preserve"' : '';
       return `<label class="pesaje-campo" data-campo="${f.clave}" ${ancho}><span class="etiqueta-mini">${f.etiqueta}</span>
-        <input class="text-field" type="${type}" id="campo-${f.clave}" /></label>`;
+        <input class="text-field" type="${type}" id="campo-${f.clave}"${casing} /></label>`;
     })
     .join('');
+
+  enlazarMayusculasVivoEnContenedor(camposHost);
 
   const dialog = host.querySelector('#abm-dialog') as HTMLDialogElement;
   const tituloDialog = host.querySelector('#abm-dialog-titulo') as HTMLElement;
@@ -169,7 +177,7 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
       if (!el) continue;
       if (modoNuevo && f.soloEdicion) continue;
       if (!modoNuevo && f.soloNuevo) continue;
-      out[f.clave] = el.value;
+      out[f.clave] = normalizarTextoGuardado(f.clave, el.value, f.tipo);
     }
     return out;
   };
@@ -204,8 +212,10 @@ export function montarAbm(host: HTMLElement, cfg: ConfigAbm): () => void {
       if (f.soloNuevo) continue;
       if (f.tipo === 'estado') {
         (el as HTMLSelectElement).value = fila.estado || 'ACTIVO';
+      } else if (f.tipo === 'password') {
+        el.value = '';
       } else {
-        el.value = fila.celdas[f.clave] ?? '';
+        el.value = normalizarTextoGuardado(f.clave, fila.celdas[f.clave] ?? '', f.tipo);
       }
     }
     mensajeDialog.textContent = '';

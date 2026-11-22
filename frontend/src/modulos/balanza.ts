@@ -1,4 +1,5 @@
 import { BalanzaGuardarConfig, BalanzaObtenerConfig } from '../../wailsjs/go/main/App';
+import { enlazarMayusculasVivoEnContenedor, normalizarTextoGuardado } from '../normalizar-campo';
 
 type BalanzaCfg = {
   puertoCom: string;
@@ -44,6 +45,8 @@ export function montarBalanza(host: HTMLElement): () => void {
     )
     .join('');
 
+  enlazarMayusculasVivoEnContenedor(grid);
+
   const msg = host.querySelector('#balanza-mensaje') as HTMLElement;
 
   const aplicar = (cfg: BalanzaCfg) => {
@@ -67,8 +70,19 @@ export function montarBalanza(host: HTMLElement): () => void {
     posicionLongitud: num('posicionLongitud'),
   });
 
-  const val = (k: string) =>
-    (host.querySelector(`#balanza-${k}`) as HTMLInputElement)?.value ?? '';
+  const numericos = new Set([
+    'baudRate',
+    'dataBits',
+    'stopBits',
+    'timeoutMs',
+    'posicionInicio',
+    'posicionLongitud',
+  ]);
+  const val = (k: string) => {
+    const raw = (host.querySelector(`#balanza-${k}`) as HTMLInputElement)?.value ?? '';
+    if (numericos.has(k)) return raw.trim();
+    return normalizarTextoGuardado(k, raw);
+  };
   const num = (k: string) => parseInt(val(k), 10) || 0;
 
   void BalanzaObtenerConfig().then((c) => aplicar(c as BalanzaCfg));

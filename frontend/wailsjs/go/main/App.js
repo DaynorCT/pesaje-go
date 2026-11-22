@@ -158,8 +158,8 @@ export function ProductVersion() {
   return window['go']['main']['App']['ProductVersion']();
 }
 
-export function ReportesListar(arg1) {
-  return window['go']['main']['App']['ReportesListar'](arg1);
+export function ReportesListar(arg1, arg2) {
+  return window['go']['main']['App']['ReportesListar'](arg1, arg2);
 }
 
 export function SesionActual() {

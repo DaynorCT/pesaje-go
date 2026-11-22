@@ -80,7 +80,7 @@ export function PesajeRegistrar(arg1:main.RegistrarPesajeDTO):Promise<main.Accio
 
 export function ProductVersion():Promise<string>;
 
-export function ReportesListar(arg1:number):Promise<Array<main.FilaPesajeDTO>>;
+export function ReportesListar(arg1:main.FiltroReporteDTO,arg2:number):Promise<Array<main.FilaPesajeDTO>>;
 
 export function SesionActual():Promise<main.UsuarioDTO>;
 

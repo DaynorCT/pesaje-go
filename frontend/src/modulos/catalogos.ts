@@ -7,7 +7,10 @@ type ConfigAbmBase = Omit<ConfigAbm, 'tituloModulo'>;
 const catalogoSimple = (entidad: string, titulo: string, tituloEntidad: string): ConfigAbmBase => ({
   entidad,
   tituloEntidad,
-  columnas: [{ clave: 'nombre', titulo: titulo }],
+  columnas: [
+    { clave: 'nombre', titulo: titulo },
+    { clave: 'descripcion', titulo: 'Descripción' },
+  ],
   campos: [
     { clave: 'nombre', etiqueta: 'Nombre', requerido: true },
     { clave: 'descripcion', etiqueta: 'Descripción', anchoCompleto: true },
@@ -24,6 +27,7 @@ const CONFIGS: Partial<Record<ModuloId, ConfigAbmBase>> = {
     tituloEntidad: 'vehículo',
     columnas: [
       { clave: 'placa', titulo: 'Placa' },
+      { clave: 'tipo', titulo: 'Tipo' },
       { clave: 'tara', titulo: 'Tara' },
     ],
     campos: [
@@ -60,6 +64,7 @@ const CONFIGS: Partial<Record<ModuloId, ConfigAbmBase>> = {
       { clave: 'ci', titulo: 'CI' },
       { clave: 'telefono', titulo: 'Teléfono' },
       { clave: 'empresa', titulo: 'Empresa' },
+      { clave: 'descripcion', titulo: 'Descripción' },
     ],
     campos: [
       { clave: 'nombre', etiqueta: 'Nombre' },

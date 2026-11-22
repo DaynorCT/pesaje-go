@@ -111,11 +111,17 @@ func boletaToDTO(b datos.BoletaConfig) BoletaConfigDTO {
 	}
 }
 
-func (a *App) ReportesListar(limite int) ([]FilaPesajeDTO, error) {
+type FiltroReporteDTO struct {
+	Desde string `json:"desde"`
+	Hasta string `json:"hasta"`
+	Placa string `json:"placa"`
+}
+
+func (a *App) ReportesListar(filtro FiltroReporteDTO, limite int) ([]FilaPesajeDTO, error) {
 	if a.db == nil {
 		return nil, nil
 	}
-	filas, err := datos.ListarPesajes(context.Background(), a.db.Conn(), limite)
+	filas, err := datos.ListarPesajesFiltrado(context.Background(), a.db.Conn(), filtro.Desde, filtro.Hasta, filtro.Placa, limite)
 	if err != nil {
 		return nil, err
 	}
@@ -124,12 +130,6 @@ func (a *App) ReportesListar(limite int) ([]FilaPesajeDTO, error) {
 		out[i] = filaToDTO(f)
 	}
 	return out, nil
-}
-
-type FiltroReporteDTO struct {
-	Desde string `json:"desde"`
-	Hasta string `json:"hasta"`
-	Placa string `json:"placa"`
 }
 
 func (a *App) GenerarReportePdf(filtro FiltroReporteDTO) PdfResultadoDTO {
