@@ -189,7 +189,12 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
     const pwd = (contenedor.querySelector('#pwd-sistema') as HTMLInputElement).value;
     void SolicitarSistemaCompleto(pwd).then((a) => {
       dlgPwd.close();
-      manejarAccion(a as Accion);
+      const acc = a as Accion;
+      if (acc.ok) {
+        import('./shell').then(({ montarShell }) => montarShell(contenedor, sesion));
+        return;
+      }
+      manejarAccion(acc);
     });
   });
 

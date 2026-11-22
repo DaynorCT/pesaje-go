@@ -129,11 +129,7 @@ func (a *App) Autenticar(email, contrasena string) LoginRespuesta {
 	a.integrado = estadoIntegrado{}
 	a.muIntegrado.Unlock()
 
-	cfg := config.Cargar()
-	runtime.WindowSetMinSize(a.ctx, 420, 600)
-	runtime.WindowSetMaxSize(a.ctx, 0, 0)
-	runtime.WindowSetSize(a.ctx, 480, 680)
-	runtime.WindowSetAlwaysOnTop(a.ctx, cfg.AlwaysOnTop)
+	a.activarVentanaIntegrado()
 
 	return LoginRespuesta{
 		Exito:   true,
@@ -294,7 +290,12 @@ func (a *App) SolicitarSistemaCompleto(contrasena string) AccionDTO {
 	if !a.auth.VerificarContrasena(a.ctx, a.sesion.Email, contrasena) {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Acceso", Mensaje: "Contraseña incorrecta.", EsError: true}}
 	}
-	return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Sistema completo", Mensaje: "El shell completo llega en T5."}}
+	a.detenerBalanza()
+	a.muIntegrado.Lock()
+	a.integrado = estadoIntegrado{}
+	a.muIntegrado.Unlock()
+	a.activarVentanaShell()
+	return AccionDTO{OK: true}
 }
 
 func (a *App) CerrarSesion() {

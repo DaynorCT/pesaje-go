@@ -265,6 +265,92 @@ input.password-field:focus {
   justify-content: flex-end;
 }
 
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.shell-cabecera {
+  flex-shrink: 0;
+}
+
+.shell-fila-principal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 6px;
+}
+
+.shell-logo {
+  height: 50px;
+  width: auto;
+}
+
+.shell-nav {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  overflow-x: auto;
+}
+
+.shell-item-menu {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  padding: 9px 14px;
+  border-radius: 6px;
+  color: #52616f;
+}
+
+.shell-item-menu.activo {
+  background-color: var(--pesaje-primario-suave);
+  color: var(--pesaje-primario);
+  font-weight: bold;
+}
+
+.shell-item-menu:hover {
+  background-color: #f3f4f6;
+}
+
+.shell-usuario {
+  position: relative;
+}
+
+.shell-menu-usuario {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 220px;
+  z-index: 30;
+}
+
+.shell-submenu {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  min-width: 180px;
+  z-index: 25;
+}
+
+.shell-titulo {
+  margin: 0;
+  padding: 0 16px 10px;
+}
+
+.shell-contenido {
+  flex: 1;
+  padding: 16px;
+  overflow: auto;
+}
+
+.shell-panel {
+  max-width: 900px;
+}
+
 .scaffold .version-banner {
   display: inline-block;
   background-color: var(--pesaje-primario);
