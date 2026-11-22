@@ -6,7 +6,13 @@ import { montarBalanza } from './modulos/balanza';
 import { montarInicio } from './modulos/inicio';
 import { montarReportes } from './modulos/reportes';
 import { montarBoletaConfig } from './modulos/boleta-config';
-import { iconoUsuarioCabeceraHTML, insertarIconoModulo } from './iconos-modulo';
+import {
+  ICONO_MENU_INTEGRADO,
+  ICONO_MENU_SALIR,
+  ICONO_MENU_WEB,
+  iconoUsuarioCabeceraHTML,
+  insertarIconoModulo,
+} from './iconos-modulo';
 import { deGrupo, porId, principales, type ModuloId } from './navegacion';
 
 const IDS_ABM: ModuloId[] = [
@@ -51,7 +57,7 @@ export function montarShell(
             <div class="shell-usuario">
               <button
                 type="button"
-                class="boton-secundario boton-usuario-cabecera"
+                class="boton-usuario-cabecera"
                 id="btn-usuario"
                 aria-label="Menú de usuario"
                 title="Usuario"
@@ -259,13 +265,24 @@ function enlazarUsuario(
   if (icono) icono.innerHTML = iconoUsuarioCabeceraHTML();
 
   menu.innerHTML = `
-    <p class="subtitulo">${escapeHtml(nombre)}</p>
-    <p class="subtitulo">${escapeHtml(sesion?.email ?? '')}</p>
+    <div class="shell-menu-usuario-cabecera">
+      <p class="shell-menu-usuario-nombre">${escapeHtml(nombre)}</p>
+      <p class="shell-menu-usuario-correo">${escapeHtml(sesion?.email ?? '')}</p>
+    </div>
     <hr />
-    <button type="button" data-u="web">Ir al sistema web</button>
-    <button type="button" data-u="integrado">Volver al modo báscula</button>
+    <button type="button" class="shell-menu-usuario-item" data-u="web">
+      <span class="shell-item-icon shell-menu-item-icono">${ICONO_MENU_WEB}</span>
+      <span>Ir al sistema web</span>
+    </button>
+    <button type="button" class="shell-menu-usuario-item" data-u="integrado">
+      <span class="shell-item-icon shell-menu-item-icono">${ICONO_MENU_INTEGRADO}</span>
+      <span>Volver al modo báscula</span>
+    </button>
     <hr />
-    <button type="button" data-u="salir">Cerrar sesión</button>
+    <button type="button" class="shell-menu-usuario-item shell-menu-usuario-item--salir" data-u="salir">
+      <span class="shell-item-icon shell-menu-item-icono">${ICONO_MENU_SALIR}</span>
+      <span>Cerrar sesión</span>
+    </button>
   `;
 
   btn.onclick = (ev) => {
