@@ -204,6 +204,10 @@ func ListarPesajes(ctx context.Context, db *sql.DB, limite int) ([]FilaPesaje, e
 		return nil, err
 	}
 	defer rows.Close()
+	return escanearFilasPesaje(rows)
+}
+
+func escanearFilasPesaje(rows *sql.Rows) ([]FilaPesaje, error) {
 	var out []FilaPesaje
 	for rows.Next() {
 		var f FilaPesaje
@@ -317,11 +321,18 @@ UPDATE pesajes SET estado = ?, usuario_modificacion = ?, fecha_modificacion = ? 
 }
 
 func FinalizarPesaje(ctx context.Context, db *sql.DB, id, usuarioID int64) error {
-	_, err := db.ExecContext(ctx, `
+	res, err := db.ExecContext(ctx, `
 UPDATE pesajes SET estado_balanza = 'FINALIZADO', usuario_modificacion = ?, fecha_modificacion = ?
-WHERE id = ? AND estado_balanza = 'EN_PROCESO' AND peso_bruto > 0 AND tara > 0`,
+WHERE id = ? AND estado_balanza = 'EN_PROCESO' AND COALESCE(peso_bruto, 0) > 0 AND COALESCE(tara, 0) > 0`,
 		usuarioID, Ahora(), id)
-	return err
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("no se pudo finalizar: el pesaje debe estar EN PROCESO con peso bruto y tara mayores a cero")
+	}
+	return nil
 }
 
 func CrearVehiculo(ctx context.Context, db *sql.DB, placa, tipo string, tara int) (int64, error) {

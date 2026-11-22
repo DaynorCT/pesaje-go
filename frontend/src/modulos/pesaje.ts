@@ -333,16 +333,19 @@ export function montarPesaje(host: HTMLElement): () => void {
     for (const f of filas) {
       const tr = document.createElement('tr');
       const activo = f.estado.toUpperCase() === 'ACTIVO';
-      const enProceso = f.estadoBalanza.toUpperCase() === 'EN_PROCESO';
-      let acciones = `<button type="button" class="tabla-btn-icono" data-tip="Editar pesaje" data-act="editar" data-id="${f.id}" aria-label="Editar pesaje">${ICONO_EDITAR_TABLA}</button>`;
-      if (activo) {
-        if (enProceso) {
-          acciones += `<button type="button" class="tabla-btn-icono" data-tip="Finalizar pesaje" data-act="finalizar" data-id="${f.id}" aria-label="Finalizar pesaje">${ICONO_FINALIZAR_TABLA}</button>`;
-        } else {
-          acciones += `<button type="button" class="tabla-btn-icono" data-tip="Boleta PDF" data-act="boleta" data-id="${f.id}" aria-label="Boleta PDF">${ICONO_BOLETA_TABLA}</button>`;
-        }
+      const balanza = (f.estadoBalanza || '').toUpperCase().trim();
+      const enProceso = balanza === 'EN_PROCESO';
+      const finalizado = balanza === 'FINALIZADO';
+      let acciones = '';
+      if (finalizado) {
+        acciones += `<button type="button" class="tabla-btn-icono" data-tip="Boleta PDF" data-act="boleta" data-id="${f.id}" aria-label="Boleta PDF">${ICONO_BOLETA_TABLA}</button>`;
+      } else if (activo && enProceso) {
+        acciones += `<button type="button" class="tabla-btn-icono" data-tip="Editar pesaje" data-act="editar" data-id="${f.id}" aria-label="Editar pesaje">${ICONO_EDITAR_TABLA}</button>`;
+        acciones += `<button type="button" class="tabla-btn-icono" data-tip="Finalizar pesaje" data-act="finalizar" data-id="${f.id}" aria-label="Finalizar pesaje">${ICONO_FINALIZAR_TABLA}</button>`;
       }
-      acciones += htmlSwitchFila(activo);
+      if (!finalizado) {
+        acciones += htmlSwitchFila(activo);
+      }
       const balanzaTxt = mayus(f.estadoBalanza).replace(/_/g, ' ');
       const fechaHora = `${f.fecha} ${f.hora}`.trim();
       tr.dataset.id = String(f.id);
@@ -366,11 +369,13 @@ export function montarPesaje(host: HTMLElement): () => void {
         <td class="tabla-celda-estado"><span class="estado-etiqueta estado-etiqueta--${enProceso ? 'proceso' : 'finalizado'}">${escapeHtml(balanzaTxt)}</span></td>
         <td class="tabla-celda-acciones">${acciones}</td>
       `;
-      const sw = tr.querySelector('.abm-switch-input') as HTMLInputElement;
-      sw.addEventListener('click', (ev) => ev.stopPropagation());
-      sw.addEventListener('change', () => {
-        void cambiarEstadoGrilla(f, sw);
-      });
+      const sw = tr.querySelector('.abm-switch-input') as HTMLInputElement | null;
+      if (sw) {
+        sw.addEventListener('click', (ev) => ev.stopPropagation());
+        sw.addEventListener('change', () => {
+          void cambiarEstadoGrilla(f, sw);
+        });
+      }
       if (pesajeEdicionId === f.id) tr.classList.add('seleccionado');
       body.appendChild(tr);
     }
@@ -568,8 +573,12 @@ export function montarPesaje(host: HTMLElement): () => void {
     if (act === 'finalizar') {
       if (!window.confirm(`¿Cerrar el pesaje #${id} como FINALIZADO?`)) return;
       void PesajeFinalizar(id).then(async (r) => {
-        manejarAccion(r as AccionPesaje);
-        if ((r as AccionPesaje).ok) await recargarGrilla();
+        const acc = r as AccionPesaje;
+        manejarAccion(acc);
+        if (acc.ok) {
+          if (pesajeEdicionId === id) cancelarEdicion();
+          await recargarGrilla();
+        }
       });
     }
     if (act === 'boleta') {

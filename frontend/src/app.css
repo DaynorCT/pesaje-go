@@ -732,6 +732,26 @@ table.tabla-modulo td.tabla-celda-acciones {
   background: transparent;
 }
 
+.tabla-btn-icono[data-act='finalizar'] {
+  color: var(--pesaje-primario);
+}
+
+.tabla-btn-icono[data-act='finalizar']:hover,
+.tabla-btn-icono[data-act='finalizar']:focus-visible {
+  color: var(--pesaje-primario);
+  filter: brightness(0.88);
+}
+
+.tabla-btn-icono[data-act='boleta'] {
+  color: var(--pesaje-info);
+}
+
+.tabla-btn-icono[data-act='boleta']:hover,
+.tabla-btn-icono[data-act='boleta']:focus-visible {
+  color: var(--pesaje-info);
+  filter: brightness(0.88);
+}
+
 .abm-switch {
   position: relative;
   display: inline-block;

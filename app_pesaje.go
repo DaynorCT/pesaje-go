@@ -438,7 +438,7 @@ func (a *App) PesajeRegistrar(dto RegistrarPesajeDTO) AccionDTO {
 		CostoBs:            dto.CostoBs,
 		FleteBsPendiente:   dto.FleteBsPendiente,
 		PesadorID:          a.sesion.PersonaID,
-		EstadoBalanza:      "FINALIZADO",
+		EstadoBalanza:      "EN_PROCESO",
 	}, a.sesion.ID)
 	if err != nil {
 		a.pesajeEstablecerMensaje(err.Error(), true)

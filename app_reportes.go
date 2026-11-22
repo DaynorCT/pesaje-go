@@ -112,7 +112,18 @@ func boletaToDTO(b datos.BoletaConfig) BoletaConfigDTO {
 }
 
 func (a *App) ReportesListar(limite int) ([]FilaPesajeDTO, error) {
-	return a.PesajeListarGrilla(limite)
+	if a.db == nil {
+		return nil, nil
+	}
+	filas, err := datos.ListarPesajes(context.Background(), a.db.Conn(), limite)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]FilaPesajeDTO, len(filas))
+	for i, f := range filas {
+		out[i] = filaToDTO(f)
+	}
+	return out, nil
 }
 
 type FiltroReporteDTO struct {
