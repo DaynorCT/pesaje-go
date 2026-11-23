@@ -1,4 +1,5 @@
 {
+  "_comentario_balanza": "Sin pesador: docs/balanza-pruebas.ejemplo.json o PESAJE_BALANZA_SIM=1",
   "url": "http://localhost:3000",
   "apikey": "",
   "autoenviar": true,

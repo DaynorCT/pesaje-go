@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"sistema-pesaje/internal/balanza"
 	"sistema-pesaje/internal/clave"
 
 	_ "modernc.org/sqlite"
@@ -119,7 +120,10 @@ func (d *Database) aplicarEsquemaYMigraciones() error {
 	if err := aplicarMigraciones(d.db); err != nil {
 		return err
 	}
-	return d.sembrarAdministrador()
+	if err := d.sembrarAdministrador(); err != nil {
+		return err
+	}
+	return d.sembrarConfigBalanzaPruebas()
 }
 
 func (d *Database) aplicarEsquema() error {
@@ -159,6 +163,27 @@ func (d *Database) sembrarAdministrador() error {
 	d.claveAdministrador = pwd
 	fmt.Fprintf(os.Stderr, "[SistemaPesaje] Usuario administrador creado (%s).\n", EmailAdministrador)
 	fmt.Fprintf(os.Stderr, "[SistemaPesaje] Contraseña inicial: %s (cámbiela en el primer inicio).\n", pwd)
+	return nil
+}
+
+// sembrarConfigBalanzaPruebas deja puerto SIM en bases nuevas sin fila (solo si PESAJE_BALANZA_SIM=1).
+func (d *Database) sembrarConfigBalanzaPruebas() error {
+	if os.Getenv("PESAJE_BALANZA_SIM") != "1" {
+		return nil
+	}
+	var n int
+	if err := d.db.QueryRow(`SELECT COUNT(*) FROM config_balanza`).Scan(&n); err != nil {
+		return err
+	}
+	if n > 0 {
+		return nil
+	}
+	cfg := balanza.ConfigPorDefecto()
+	cfg.PuertoCOM = "SIM"
+	if err := GuardarConfigBalanza(context.Background(), d.db, cfg); err != nil {
+		return err
+	}
+	fmt.Fprintf(os.Stderr, "[SistemaPesaje] Báscula de pruebas: puerto SIM (sin hardware).\n")
 	return nil
 }
 

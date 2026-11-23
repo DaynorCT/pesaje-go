@@ -453,6 +453,7 @@ func (a *App) PesajeRegistrar(dto RegistrarPesajeDTO) AccionDTO {
 	}
 	a.muPesaje.Lock()
 	a.pesajeUI.pesoBruto = 0
+	a.pesajeUI.pesoTara = 0
 	a.pesajeUI.mensaje = "Pesaje guardado correctamente."
 	a.pesajeUI.esError = false
 	a.muPesaje.Unlock()

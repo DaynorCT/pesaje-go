@@ -1,0 +1,13 @@
+{
+  "_comentario": "Valores para ABM Balanza en SQLite (config_balanza). Sin pesador real use puerto SIM o PESAJE_BALANZA_SIM=1 al crear pesaje.db.",
+  "puerto_com": "SIM",
+  "baudrate": 9600,
+  "databits": 8,
+  "paridad": "N",
+  "stopbits": 1,
+  "flowcontrol": "None",
+  "timeout_ms": 1000,
+  "metodo_lectura": "AUTO",
+  "posicion_inicio": 8,
+  "posicion_longitud": 5
+}
