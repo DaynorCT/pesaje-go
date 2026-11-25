@@ -12,7 +12,7 @@ func TestGenerarBoletaProducePDF(t *testing.T) {
 		VehiculoPlaca: "ABC123", PesoBruto: 1000, Tara: 200, PesoNeto: 800,
 	}
 	cfg := &datos.BoletaConfig{Marca: "TEST", TituloSuperior: "BOLETA"}
-	b, err := GenerarBoleta(d, cfg)
+	b, err := GenerarBoleta(d, cfg, datos.LogoSistemaJPEG())
 	if err != nil || len(b) < 4 || string(b[:4]) != "%PDF" {
 		t.Fatalf("pdf boleta invalido: len=%d err=%v", len(b), err)
 	}

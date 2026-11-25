@@ -1,7 +1,7 @@
 /* Web port of jacobitus.css (T1). Source: jacobitus-escritorio/pesaje/src/main/resources/jacobitus.css */
 
 .version-banner {
-    background-color: #9a3412;
+    background-color: var(--pesaje-primario);
     color: white;
     font-weight: bold;
     padding: 7px 10px 7px 10px;

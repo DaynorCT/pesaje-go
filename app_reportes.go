@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"sistema-pesaje/internal/boleta"
 	"sistema-pesaje/internal/config"
 	"sistema-pesaje/internal/datos"
 	"sistema-pesaje/internal/reportes"
@@ -172,7 +173,9 @@ func (a *App) GenerarBoletaPdf(pesajeID int64) PdfResultadoDTO {
 		return PdfResultadoDTO{OK: false, Mensaje: err.Error(), EsError: true}
 	}
 	cfg, _ := datos.ObtenerBoletaConfig(context.Background(), a.db.Conn())
-	pdf, err := reportes.GenerarBoleta(d, cfg)
+	ctx := context.Background()
+	logo := boleta.ResolverLogoParaPDF(ctx, a.db.Conn())
+	pdf, err := reportes.GenerarBoleta(d, cfg, logo)
 	if err != nil {
 		return PdfResultadoDTO{OK: false, Mensaje: err.Error(), EsError: true}
 	}

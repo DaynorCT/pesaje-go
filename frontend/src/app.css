@@ -407,7 +407,7 @@ input.text-field:not(.password-field):not([data-casing='preserve']):not([type='e
   font: inherit;
   padding: 9px 14px;
   border-radius: 6px;
-  color: #52616f;
+  color: var(--pesaje-nav-texto-suave);
 }
 
 .shell-item-icon {
@@ -455,22 +455,23 @@ input.text-field:not(.password-field):not([data-casing='preserve']):not([type='e
 }
 
 .shell-item-menu.activo {
-  background-color: var(--pesaje-primario-suave);
-  color: var(--pesaje-titulo);
-  font-weight: normal;
+  background-color: var(--pesaje-nav-fondo-activo);
+  color: var(--pesaje-nav-texto);
+  font-weight: 500;
 }
 
 .shell-item-menu.activo .shell-item-chevron {
-  opacity: 0.7;
-  color: var(--pesaje-titulo);
+  opacity: 0.75;
+  color: inherit;
 }
 
 .shell-item-menu:hover {
-  background-color: #f3f4f6;
+  background-color: var(--pesaje-nav-fondo-activo);
+  color: var(--pesaje-nav-texto);
 }
 
 .shell-nav .shell-item-menu.activo:hover {
-  background-color: var(--pesaje-primario-suave);
+  background-color: var(--pesaje-nav-fondo-activo);
 }
 
 .shell-usuario {
@@ -723,15 +724,15 @@ table.tabla-modulo td.tabla-celda-estado {
 }
 
 .estado-etiqueta--proceso {
-  color: #92400e;
-  border-color: #fef3c7;
-  background: #fef3c7;
+  color: var(--pesaje-advertencia);
+  border-color: var(--pesaje-advertencia-suave);
+  background: var(--pesaje-advertencia-suave);
 }
 
 .estado-etiqueta--finalizado {
-  color: #1e40af;
-  border-color: #dbeafe;
-  background: #dbeafe;
+  color: var(--pesaje-info);
+  border-color: var(--pesaje-info-suave);
+  background: var(--pesaje-info-suave);
 }
 
 table.tabla-modulo th.tabla-th-acciones,
@@ -1416,11 +1417,11 @@ select.combo-web:focus {
 }
 
 .mensaje-exito {
-  color: #1b6b3a;
+  color: var(--pesaje-exito);
 }
 
 .mensaje-error {
-  color: #b91c1c;
+  color: var(--pesaje-error);
 }
 
 .pesaje-grilla-wrap {
@@ -1569,13 +1570,13 @@ table.tabla-modulo tbody tr.seleccionado {
 }
 
 .badge-finalizado {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--pesaje-info-suave);
+  color: var(--pesaje-info);
 }
 
 .badge-proceso {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--pesaje-advertencia-suave);
+  color: var(--pesaje-advertencia);
 }
 
 .pesaje-check {

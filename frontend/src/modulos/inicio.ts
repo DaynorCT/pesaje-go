@@ -95,8 +95,8 @@ export function montarInicio(host: HTMLElement, opciones?: OpcionesInicio): () =
     if (!canvas) return;
     const labels = puntos.map((p) => p.fecha);
     const data = puntos.map((p) => p.cantidad);
-    const primario = getComputedStyle(document.documentElement).getPropertyValue('--pesaje-primario').trim() || '#9a3412';
-    const suave = getComputedStyle(document.documentElement).getPropertyValue('--pesaje-primario-suave').trim() || '#f6ece6';
+    const primario = getComputedStyle(document.documentElement).getPropertyValue('--pesaje-primario').trim() || '#255ea6';
+    const suave = getComputedStyle(document.documentElement).getPropertyValue('--pesaje-primario-suave').trim() || '#e8f0fa';
 
     chart?.destroy();
     chart = new Chart(canvas, {
