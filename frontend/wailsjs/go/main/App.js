@@ -118,6 +118,18 @@ export function PesajeCrearChofer(arg1, arg2, arg3, arg4, arg5, arg6) {
   return window['go']['main']['App']['PesajeCrearChofer'](arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
+export function PesajeCrearDestino(arg1, arg2) {
+  return window['go']['main']['App']['PesajeCrearDestino'](arg1, arg2);
+}
+
+export function PesajeCrearOrigen(arg1, arg2) {
+  return window['go']['main']['App']['PesajeCrearOrigen'](arg1, arg2);
+}
+
+export function PesajeCrearProducto(arg1, arg2) {
+  return window['go']['main']['App']['PesajeCrearProducto'](arg1, arg2);
+}
+
 export function PesajeCrearProveedor(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
   return window['go']['main']['App']['PesajeCrearProveedor'](arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 }

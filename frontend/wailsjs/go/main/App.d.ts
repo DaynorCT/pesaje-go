@@ -60,6 +60,12 @@ export function PesajeCerrar():Promise<void>;
 
 export function PesajeCrearChofer(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string,arg6:string):Promise<main.AccionDTO>;
 
+export function PesajeCrearDestino(arg1:string,arg2:string):Promise<main.AccionDTO>;
+
+export function PesajeCrearOrigen(arg1:string,arg2:string):Promise<main.AccionDTO>;
+
+export function PesajeCrearProducto(arg1:string,arg2:string):Promise<main.AccionDTO>;
+
 export function PesajeCrearProveedor(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string,arg6:string,arg7:string):Promise<main.AccionDTO>;
 
 export function PesajeCrearVehiculo(arg1:string,arg2:string,arg3:number):Promise<main.AccionDTO>;

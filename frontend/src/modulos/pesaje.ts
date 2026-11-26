@@ -10,6 +10,9 @@ import {
   PesajeCambiarEstado,
   PesajeCerrar,
   PesajeCrearChofer,
+  PesajeCrearDestino,
+  PesajeCrearOrigen,
+  PesajeCrearProducto,
   PesajeCrearProveedor,
   PesajeCrearVehiculo,
   PesajeDetalleChofer,
@@ -96,7 +99,13 @@ function motivoNoFinalizar(f: Fila): string | null {
   return null;
 }
 
-export function montarPesaje(host: HTMLElement): () => void {
+export type MontarPesajeOpciones = {
+  /** tabla: solo grilla (sistema completo). completo: operación + grilla (báscula). */
+  alcance?: 'completo' | 'tabla';
+};
+
+export function montarPesaje(host: HTMLElement, montaje?: MontarPesajeOpciones): () => void {
+  const soloTabla = montaje?.alcance === 'tabla';
   let timer = 0;
   let taraManual = false;
   let pesajeEdicionId = 0;
@@ -111,10 +120,14 @@ export function montarPesaje(host: HTMLElement): () => void {
   } = { vehiculos: [], choferes: [], proveedores: [], productos: [], origenes: [], destinos: [] };
 
   host.innerHTML = `
-    <div class="panel-pesaje abm-panel">
+    <div class="panel-pesaje abm-panel${soloTabla ? ' panel-pesaje--solo-tabla' : ''}">
       <header class="abm-cabecera">
         <h2 class="titulo-tarjeta abm-titulo-modulo">Pesaje</h2>
       </header>
+      ${
+        soloTabla
+          ? ''
+          : `
       <div class="panel-pesaje-medio">
         <section class="tarjeta pesaje-registro">
           <h2 class="titulo-tarjeta">Registro de peso</h2>
@@ -161,6 +174,7 @@ export function montarPesaje(host: HTMLElement): () => void {
           </div>
         </section>
       </div>
+      `}
       <section class="tarjeta tarjeta-sin-padding pesaje-grilla-wrap tabla-modulo-wrap pesaje-tabla-ajuste">
         <table class="tabla-modulo tabla-modulo--ajuste-ventana" id="tabla-pesajes">
           <colgroup>
@@ -195,6 +209,27 @@ export function montarPesaje(host: HTMLElement): () => void {
   const slotDialogos = qs<HTMLElement>('#pesaje-dialogos');
   const aviso = crearDialogoAviso(slotDialogos, 'dlg-aviso', 'compacto');
   const confirmar = crearDialogoConfirmar(slotDialogos, 'dlg-confirmar-pesaje');
+
+  let aplicarEstado: (e: EstadoPane) => void = () => {};
+
+  const mostrarAviso = (titulo: string, mensaje: string) => {
+    aviso.mostrar(titulo, mensaje);
+  };
+
+  const manejarAccion = (a: AccionPesaje) => {
+    if (!soloTabla && a.estadoPesaje) aplicarEstado(a.estadoPesaje);
+    if (a.aviso) mostrarAviso(a.aviso.titulo, a.aviso.mensaje);
+  };
+
+  let recargarOpciones: () => Promise<void> = async () => {};
+  let alCambiarChofer: () => Promise<void> = async () => {};
+  let alCambiarVehiculo: () => Promise<void> = async () => {};
+  let sincronizarConexionBalanza: (conectado: boolean) => void = () => {};
+  let gridDatos: HTMLElement | undefined;
+  let dlgRapido: HTMLDialogElement | undefined;
+  let formRapido: HTMLFormElement | undefined;
+
+  if (!soloTabla) {
   const wrapRapido = document.createElement('div');
   wrapRapido.innerHTML = htmlDialogoFormGuardar({
     dialogId: 'dlg-rapido',
@@ -208,16 +243,12 @@ export function montarPesaje(host: HTMLElement): () => void {
     ancho: 'medio',
   });
   slotDialogos.appendChild(wrapRapido.firstElementChild!);
-  const dlgRapido = qs<HTMLDialogElement>('#dlg-rapido');
-  const formRapido = qs<HTMLFormElement>('#form-rapido');
-  const gridDatos = qs<HTMLElement>('#grid-datos');
+  dlgRapido = qs<HTMLDialogElement>('#dlg-rapido');
+  formRapido = qs<HTMLFormElement>('#form-rapido');
+  gridDatos = qs<HTMLElement>('#grid-datos');
   enlazarDialogo(dlgRapido, [qs<HTMLButtonElement>('#rapido-cancelar')]);
 
-  const mostrarAviso = (titulo: string, mensaje: string) => {
-    aviso.mostrar(titulo, mensaje);
-  };
-
-  const sincronizarConexionBalanza = (conectado: boolean) => {
+  sincronizarConexionBalanza = (conectado: boolean) => {
     const sw = qs<HTMLInputElement>('#sw-balanza');
     const tip = conectado ? 'Desconectar balanza' : 'Conectar balanza';
     sw.checked = conectado;
@@ -231,7 +262,7 @@ export function montarPesaje(host: HTMLElement): () => void {
     pill.className = `estado-etiqueta ${conectado ? 'estado-etiqueta--activo' : 'estado-etiqueta--inactivo'}`;
   };
 
-  const aplicarEstado = (e: EstadoPane) => {
+  aplicarEstado = (e: EstadoPane) => {
     qs('#pesaje-vivo').textContent = `${e.pesoVivo.toLocaleString('es-BO')} kg`;
     sincronizarConexionBalanza(e.balanzaConectada);
     qs<HTMLButtonElement>('#btn-cap-bruto').disabled = !e.puedeCapturar;
@@ -243,11 +274,6 @@ export function montarPesaje(host: HTMLElement): () => void {
     msg.textContent = e.mensaje;
     msg.className = e.mensajeEsError ? 'mensaje-error pesaje-mensaje' : 'subtitulo pesaje-mensaje mensaje-exito';
     if (!e.mensaje) msg.className = 'subtitulo pesaje-mensaje';
-  };
-
-  const manejarAccion = (a: AccionPesaje) => {
-    if (a.estadoPesaje) aplicarEstado(a.estadoPesaje);
-    if (a.aviso) mostrarAviso(a.aviso.titulo, a.aviso.mensaje);
   };
 
   const selectHTML = (id: string, label: string, plus?: string) => `
@@ -266,9 +292,9 @@ export function montarPesaje(host: HTMLElement): () => void {
     <label class="pesaje-campo"><span class="etiqueta-mini">Licencia</span><input class="text-field" id="licencia" readonly placeholder="—" /></label>
     <label class="pesaje-campo"><span class="etiqueta-mini">Tipo vehículo</span><input class="text-field" id="tipo-vehiculo" readonly placeholder="—" /></label>
     ${selectHTML('sel-proveedor', 'Proveedor', 'proveedor')}
-    ${selectHTML('sel-producto', 'Producto')}
-    ${selectHTML('sel-origen', 'Origen')}
-    ${selectHTML('sel-destino', 'Destino')}
+    ${selectHTML('sel-producto', 'Producto', 'producto')}
+    ${selectHTML('sel-origen', 'Origen', 'origen')}
+    ${selectHTML('sel-destino', 'Destino', 'destino')}
     <label class="pesaje-campo"><span class="etiqueta-mini">Costo (Bs)</span><input class="text-field" id="costo" value="0" inputmode="numeric" /></label>
     <label class="pesaje-campo"><span class="etiqueta-mini">Flete pend. (Bs)</span><input class="text-field" id="flete" value="0" inputmode="numeric" /></label>
     <label class="pesaje-campo pesaje-tara-campo">
@@ -283,7 +309,7 @@ export function montarPesaje(host: HTMLElement): () => void {
     sel.innerHTML = items.map((o) => `<option value="${o.id}">${escapeHtml(o.label)}</option>`).join('');
   };
 
-  const recargarOpciones = async () => {
+  recargarOpciones = async () => {
     const op = (await PesajeOpciones()) as typeof opciones & {
       vehiculos: Opcion[];
     };
@@ -308,7 +334,7 @@ export function montarPesaje(host: HTMLElement): () => void {
   const mapOp = (xs: { id: number; label: string }[]): Opcion[] =>
     (xs || []).map((x) => ({ id: x.id, label: x.label }));
 
-  const alCambiarChofer = async () => {
+  alCambiarChofer = async () => {
     const id = Number(qs<HTMLSelectElement>('#sel-chofer').value);
     if (!id) {
       qs<HTMLInputElement>('#licencia').value = '';
@@ -318,7 +344,7 @@ export function montarPesaje(host: HTMLElement): () => void {
     qs<HTMLInputElement>('#licencia').value = det?.licencia ?? '';
   };
 
-  const alCambiarVehiculo = async () => {
+  alCambiarVehiculo = async () => {
     const id = Number(qs<HTMLSelectElement>('#sel-vehiculo').value);
     if (!id) {
       qs<HTMLInputElement>('#tipo-vehiculo').value = '';
@@ -331,6 +357,8 @@ export function montarPesaje(host: HTMLElement): () => void {
       void PesajeActualizarTara(det.tara ?? 0).then((est) => aplicarEstado(est as EstadoPane));
     }
   };
+
+  }
 
   const columnas = [
     'ID', 'Chofer', 'Placa', 'Lic.', 'Tipo', 'Prov.', 'Prod.', 'Orig.', 'Dest.',
@@ -364,7 +392,9 @@ export function montarPesaje(host: HTMLElement): () => void {
       if (finalizado) {
         acciones += `<button type="button" class="tabla-btn-icono" data-tip="Boleta PDF" data-act="boleta" data-id="${f.id}" aria-label="Boleta PDF">${ICONO_BOLETA_TABLA}</button>`;
       } else if (activo && enProceso) {
-        acciones += `<button type="button" class="tabla-btn-icono" data-tip="Editar pesaje" data-act="editar" data-id="${f.id}" aria-label="Editar pesaje">${ICONO_EDITAR_TABLA}</button>`;
+        if (!soloTabla) {
+          acciones += `<button type="button" class="tabla-btn-icono" data-tip="Editar pesaje" data-act="editar" data-id="${f.id}" aria-label="Editar pesaje">${ICONO_EDITAR_TABLA}</button>`;
+        }
         acciones += `<button type="button" class="tabla-btn-icono" data-tip="Finalizar pesaje" data-act="finalizar" data-id="${f.id}" aria-label="Finalizar pesaje">${ICONO_FINALIZAR_TABLA}</button>`;
       }
       if (!finalizado) {
@@ -441,6 +471,10 @@ export function montarPesaje(host: HTMLElement): () => void {
     });
   };
 
+  let cancelarEdicion: () => void = () => {};
+  let aplicarEdicionEnFormulario: (id: number) => Promise<void> = async () => {};
+
+  if (!soloTabla) {
   const setModoEdicion = (id: number) => {
     pesajeEdicionId = id;
     const btn = qs<HTMLButtonElement>('#btn-guardar');
@@ -468,7 +502,7 @@ export function montarPesaje(host: HTMLElement): () => void {
     await alCambiarChofer();
   };
 
-  const cancelarEdicion = () => {
+  cancelarEdicion = () => {
     setModoEdicion(0);
     marcarFilaGrilla(0);
     void restablecerFormularioNuevo().then(() => {
@@ -476,7 +510,7 @@ export function montarPesaje(host: HTMLElement): () => void {
     });
   };
 
-  const aplicarEdicionEnFormulario = async (id: number) => {
+  aplicarEdicionEnFormulario = async (id: number) => {
     let det: {
       id: number;
       vehiculoId: number;
@@ -593,6 +627,127 @@ export function montarPesaje(host: HTMLElement): () => void {
     });
   });
 
+  type RapidoDef = { tipo: string; titulo: string; campos: string[]; defaults: string[] };
+  const rapidos: Record<string, RapidoDef> = {
+    vehiculo: { tipo: 'vehiculo', titulo: 'Nuevo vehículo', campos: ['Placa *', 'Tipo', 'Tara (kg)'], defaults: ['', '', '0'] },
+    chofer: {
+      tipo: 'chofer',
+      titulo: 'Nuevo chofer',
+      campos: ['Nombre *', 'Apellido paterno', 'Apellido materno', 'Nro. documento', 'Teléfono', 'Licencia *'],
+      defaults: ['', '', '', '', '', ''],
+    },
+    proveedor: {
+      tipo: 'proveedor',
+      titulo: 'Nuevo proveedor',
+      campos: ['Nombre *', 'Apellido paterno', 'Apellido materno', 'CI', 'Teléfono', 'Empresa *', 'Descripción'],
+      defaults: ['', '', '', '', '', '', ''],
+    },
+    producto: {
+      tipo: 'producto',
+      titulo: 'Nuevo producto',
+      campos: ['Nombre *', 'Descripción'],
+      defaults: ['', ''],
+    },
+    origen: {
+      tipo: 'origen',
+      titulo: 'Nuevo origen',
+      campos: ['Nombre *', 'Descripción'],
+      defaults: ['', ''],
+    },
+    destino: {
+      tipo: 'destino',
+      titulo: 'Nuevo destino',
+      campos: ['Nombre *', 'Descripción'],
+      defaults: ['', ''],
+    },
+  };
+
+  let rapidoActual: RapidoDef | null = null;
+
+  gridDatos!.querySelectorAll('button[data-plus]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const t = btn.getAttribute('data-plus')!;
+      rapidoActual = rapidos[t];
+      if (!rapidoActual) return;
+      qs('#rapido-titulo').textContent = rapidoActual.titulo;
+      const cont = qs('#rapido-campos');
+      const def = rapidoActual;
+      cont.innerHTML = def.campos
+        .map((c, i) => {
+          const ancho = c.toLowerCase().includes('descripción') ? ' data-ancho-completo="1"' : '';
+          return `<label class="pesaje-campo"${ancho}><span class="etiqueta-mini">${c}</span><input class="text-field" data-idx="${i}" value="${escapeAttr(def.defaults[i])}" /></label>`;
+        })
+        .join('');
+      cont.querySelectorAll<HTMLInputElement>('input[data-idx]').forEach((inp) => {
+        const label = inp.closest('label')?.querySelector('.etiqueta-mini')?.textContent ?? '';
+        if (/\btara\b/i.test(label)) inp.dataset.casing = 'preserve';
+        enlazarMayusculasVivo(inp);
+      });
+      aplicarLayoutDialogoCampos(cont, def.campos.length, dlgRapido!);
+      dlgRapido!.showModal();
+    });
+  });
+
+  formRapido!.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const def = rapidoActual;
+    if (!def) return;
+    const vals = Array.from(formRapido!.querySelectorAll('input[data-idx]')).map((el) => {
+      const inp = el as HTMLInputElement;
+      if (inp.dataset.casing === 'preserve') return inp.value.trim();
+      const idx = Number(inp.dataset.idx);
+      const clave =
+        def.tipo === 'vehiculo' && idx === 0
+          ? 'placa'
+          : def.tipo === 'chofer' && idx === 0
+            ? 'nombre'
+            : (def.tipo === 'producto' || def.tipo === 'origen' || def.tipo === 'destino') && idx === 0
+              ? 'nombre'
+              : 'texto';
+      return normalizarTextoGuardado(clave, inp.value);
+    });
+    const fin = async () => {
+      dlgRapido!.close();
+      await recargarOpciones();
+      const e = (await PesajeEstado()) as EstadoPane;
+      aplicarEstado(e);
+    };
+    if (def.tipo === 'vehiculo') {
+      void PesajeCrearVehiculo(vals[0], vals[1], parseInt(vals[2], 10) || 0).then(async (r) => {
+        if ((r as AccionPesaje).ok) await fin();
+        else manejarAccion(r as AccionPesaje);
+      });
+    } else if (def.tipo === 'chofer') {
+      void PesajeCrearChofer(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]).then(async (r) => {
+        if ((r as AccionPesaje).ok) await fin();
+        else manejarAccion(r as AccionPesaje);
+      });
+    } else if (def.tipo === 'proveedor') {
+      void PesajeCrearProveedor(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6]).then(async (r) => {
+        if ((r as AccionPesaje).ok) await fin();
+        else manejarAccion(r as AccionPesaje);
+      });
+    } else if (def.tipo === 'producto') {
+      void PesajeCrearProducto(vals[0], vals[1]).then(async (r) => {
+        if ((r as AccionPesaje).ok) await fin();
+        else manejarAccion(r as AccionPesaje);
+      });
+    } else if (def.tipo === 'origen') {
+      void PesajeCrearOrigen(vals[0], vals[1]).then(async (r) => {
+        if ((r as AccionPesaje).ok) await fin();
+        else manejarAccion(r as AccionPesaje);
+      });
+    } else if (def.tipo === 'destino') {
+      void PesajeCrearDestino(vals[0], vals[1]).then(async (r) => {
+        if ((r as AccionPesaje).ok) await fin();
+        else manejarAccion(r as AccionPesaje);
+      });
+    }
+  });
+
+  enlazarMayusculasVivoEnContenedor(host);
+  }
+
   host.querySelector('#tabla-body')?.addEventListener('click', (ev) => {
     const btn = (ev.target as HTMLElement).closest('button[data-act]') as HTMLButtonElement | null;
     if (!btn) return;
@@ -619,7 +774,7 @@ export function montarPesaje(host: HTMLElement): () => void {
         const r = (await PesajeFinalizar(id)) as AccionPesaje;
         manejarAccion(r);
         if (r.ok) {
-          if (pesajeEdicionId === id) cancelarEdicion();
+          if (!soloTabla && pesajeEdicionId === id) cancelarEdicion();
           await recargarGrilla();
         }
       })();
@@ -630,102 +785,18 @@ export function montarPesaje(host: HTMLElement): () => void {
     }
   });
 
-  type RapidoDef = { tipo: string; titulo: string; campos: string[]; defaults: string[] };
-  const rapidos: Record<string, RapidoDef> = {
-    vehiculo: { tipo: 'vehiculo', titulo: 'Nuevo vehículo', campos: ['Placa *', 'Tipo', 'Tara (kg)'], defaults: ['', '', '0'] },
-    chofer: {
-      tipo: 'chofer',
-      titulo: 'Nuevo chofer',
-      campos: ['Nombre *', 'Apellido paterno', 'Apellido materno', 'Nro. documento', 'Teléfono', 'Licencia *'],
-      defaults: ['', '', '', '', '', ''],
-    },
-    proveedor: {
-      tipo: 'proveedor',
-      titulo: 'Nuevo proveedor',
-      campos: ['Nombre *', 'Apellido paterno', 'Apellido materno', 'CI', 'Teléfono', 'Empresa *', 'Descripción'],
-      defaults: ['', '', '', '', '', '', ''],
-    },
-  };
-
-  let rapidoActual: RapidoDef | null = null;
-
-  gridDatos.querySelectorAll('button[data-plus]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const t = btn.getAttribute('data-plus')!;
-      rapidoActual = rapidos[t];
-      if (!rapidoActual) return;
-      qs('#rapido-titulo').textContent = rapidoActual.titulo;
-      const cont = qs('#rapido-campos');
-      const def = rapidoActual;
-      cont.innerHTML = def.campos
-        .map((c, i) => {
-          const ancho = c.toLowerCase().includes('descripción') ? ' data-ancho-completo="1"' : '';
-          return `<label class="pesaje-campo"${ancho}><span class="etiqueta-mini">${c}</span><input class="text-field" data-idx="${i}" value="${escapeAttr(def.defaults[i])}" /></label>`;
-        })
-        .join('');
-      cont.querySelectorAll<HTMLInputElement>('input[data-idx]').forEach((inp) => {
-        const label = inp.closest('label')?.querySelector('.etiqueta-mini')?.textContent ?? '';
-        if (/\btara\b/i.test(label)) inp.dataset.casing = 'preserve';
-        enlazarMayusculasVivo(inp);
-      });
-      aplicarLayoutDialogoCampos(cont, def.campos.length, dlgRapido);
-      dlgRapido.showModal();
-    });
-  });
-
-  formRapido.addEventListener('submit', (ev) => {
-    ev.preventDefault();
-    const def = rapidoActual;
-    if (!def) return;
-    const vals = Array.from(formRapido.querySelectorAll('input[data-idx]')).map((el) => {
-      const inp = el as HTMLInputElement;
-      if (inp.dataset.casing === 'preserve') return inp.value.trim();
-      const idx = Number(inp.dataset.idx);
-      const clave =
-        def.tipo === 'vehiculo' && idx === 0
-          ? 'placa'
-          : def.tipo === 'chofer' && idx === 0
-            ? 'nombre'
-            : 'texto';
-      return normalizarTextoGuardado(clave, inp.value);
-    });
-    const fin = async () => {
-      dlgRapido.close();
-      await recargarOpciones();
-      const e = (await PesajeEstado()) as EstadoPane;
-      aplicarEstado(e);
-    };
-    if (def.tipo === 'vehiculo') {
-      void PesajeCrearVehiculo(vals[0], vals[1], parseInt(vals[2], 10) || 0).then(async (r) => {
-        if ((r as AccionPesaje).ok) await fin();
-        else manejarAccion(r as AccionPesaje);
-      });
-    } else if (def.tipo === 'chofer') {
-      void PesajeCrearChofer(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]).then(async (r) => {
-        if ((r as AccionPesaje).ok) await fin();
-        else manejarAccion(r as AccionPesaje);
-      });
-    } else if (def.tipo === 'proveedor') {
-      void PesajeCrearProveedor(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6]).then(async (r) => {
-        if ((r as AccionPesaje).ok) await fin();
-        else manejarAccion(r as AccionPesaje);
-      });
-    }
-  });
-
-  enlazarMayusculasVivoEnContenedor(host);
-
-  void PesajeEstado().then((e) => aplicarEstado(e as EstadoPane));
-  void recargarOpciones();
-  void recargarGrilla();
-
-  timer = window.setInterval(() => {
+  if (!soloTabla) {
     void PesajeEstado().then((e) => aplicarEstado(e as EstadoPane));
-  }, 1500);
+    void recargarOpciones();
+    timer = window.setInterval(() => {
+      void PesajeEstado().then((e) => aplicarEstado(e as EstadoPane));
+    }, 1500);
+  }
+  void recargarGrilla();
 
   return () => {
     window.clearInterval(timer);
-    PesajeCerrar();
+    if (!soloTabla) PesajeCerrar();
   };
 }
 

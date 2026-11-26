@@ -552,3 +552,33 @@ func (a *App) PesajeCrearProveedor(nombre, apPat, apMat, ci, tel, empresa, descr
 	a.pesajeEstablecerMensaje("Proveedor creado.", false)
 	return AccionDTO{OK: true}
 }
+
+func (a *App) pesajeCrearCatalogo(titulo, entidad, nombre, descripcion string) AccionDTO {
+	nombre = strings.TrimSpace(nombre)
+	if nombre == "" {
+		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: titulo, Mensaje: "El nombre es obligatorio.", EsError: true}}
+	}
+	if a.db == nil {
+		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: titulo, Mensaje: "Base no disponible.", EsError: true}}
+	}
+	if err := datos.AbmGuardar(context.Background(), a.db.Conn(), entidad, 0, map[string]string{
+		"nombre":      nombre,
+		"descripcion": strings.TrimSpace(descripcion),
+	}); err != nil {
+		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: titulo, Mensaje: err.Error(), EsError: true}}
+	}
+	a.pesajeEstablecerMensaje(strings.TrimPrefix(titulo, "Nuevo ")+" creado.", false)
+	return AccionDTO{OK: true}
+}
+
+func (a *App) PesajeCrearProducto(nombre, descripcion string) AccionDTO {
+	return a.pesajeCrearCatalogo("Nuevo producto", "productos", nombre, descripcion)
+}
+
+func (a *App) PesajeCrearOrigen(nombre, descripcion string) AccionDTO {
+	return a.pesajeCrearCatalogo("Nuevo origen", "origenes", nombre, descripcion)
+}
+
+func (a *App) PesajeCrearDestino(nombre, descripcion string) AccionDTO {
+	return a.pesajeCrearCatalogo("Nuevo destino", "destinos", nombre, descripcion)
+}

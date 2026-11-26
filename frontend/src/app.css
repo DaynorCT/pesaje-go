@@ -1196,6 +1196,16 @@ table.tabla-modulo td.tabla-celda-acciones {
   width: 100%;
 }
 
+.panel-pesaje--solo-tabla {
+  flex: 1;
+  min-height: 0;
+}
+
+.panel-pesaje--solo-tabla .pesaje-grilla-wrap {
+  flex: 1;
+  min-height: 0;
+}
+
 .panel-pesaje-medio {
   display: flex;
   gap: 16px;

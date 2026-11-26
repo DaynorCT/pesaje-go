@@ -227,7 +227,7 @@ function pintarContenido(
   if (mod.id === 'pesaje') {
     host.className = 'shell-contenido shell-contenido-abm';
     host.replaceChildren();
-    return montarPesaje(host);
+    return montarPesaje(host, { alcance: 'tabla' });
   }
   if (mod.id === 'balanza') {
     host.className = 'shell-contenido';
