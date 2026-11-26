@@ -304,6 +304,7 @@ function enlazarUsuario(
       if (u === 'web') void AbrirSistemaWeb();
       const host = root;
       if (u === 'integrado' && sesion) {
+        alDestruirShell?.();
         void VolverAModoIntegrado().then(() =>
           import('./modo-integrado').then(({ montarModoIntegrado }) =>
             montarModoIntegrado(host, sesion),

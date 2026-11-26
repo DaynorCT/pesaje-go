@@ -51,7 +51,7 @@ Instalador NSIS desde macOS/Linux solo funciona si `makensis` está instalado; s
 
 1. Copie `sistema-pesaje.exe` a una carpeta de su elección (por ejemplo `C:\Program Files\SistemaPesaje\` o el escritorio).
 2. En **Windows 10**, si al abrir aparece un error de WebView, instale [WebView2 Evergreen](https://developer.microsoft.com/microsoft-edge/webview2/).
-3. Ejecute `sistema-pesaje.exe`. En el **primer arranque** la aplicación crea la base local y muestra la contraseña temporal del usuario administrador.
+3. Ejecute `sistema-pesaje.exe`. En el **primer arranque** la aplicación crea la base local y crea el usuario administrador (`admin.com`) con contraseña inicial `admin123` (también en el aviso de login; cámbiela después).
 
 ### Opción B — Instalador NSIS
 

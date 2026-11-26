@@ -12,8 +12,6 @@ import (
 	"sistema-pesaje/internal/config"
 	"sistema-pesaje/internal/datos"
 	pesync "sistema-pesaje/internal/sync"
-
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App expone bindings Wails al frontend.
@@ -59,7 +57,7 @@ func (a *App) startup(ctx context.Context) {
 	}
 	a.db = base
 	a.auth = auth.NewService(base)
-	runtime.WindowSetSize(ctx, 460, 520)
+	a.activarVentanaLogin()
 }
 
 func (a *App) ProductVersion() string {
@@ -340,10 +338,7 @@ func (a *App) CerrarSesion() {
 	a.muIntegrado.Unlock()
 	a.sesion = nil
 	a.cerrarSync()
-	runtime.WindowSetAlwaysOnTop(a.ctx, false)
-	runtime.WindowSetMaxSize(a.ctx, 520, 640)
-	runtime.WindowSetMinSize(a.ctx, 420, 480)
-	runtime.WindowSetSize(a.ctx, 460, 520)
+	a.activarVentanaLogin()
 }
 
 func ptrEstado(e EstadoIntegradoDTO) *EstadoIntegradoDTO {

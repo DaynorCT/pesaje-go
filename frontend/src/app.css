@@ -209,6 +209,20 @@ input.text-field:not(.password-field):not([data-casing='preserve']):not([type='e
   padding: 16px;
 }
 
+.integrado-centro--pesaje {
+  min-height: 0;
+  overflow: auto;
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 16px 16px;
+}
+
+.modo-integrado .panel-pesaje {
+  flex: 1;
+  min-height: 0;
+}
+
 .integrado-tarjeta {
   max-width: 100%;
 }

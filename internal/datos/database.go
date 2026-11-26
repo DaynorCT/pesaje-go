@@ -2,7 +2,6 @@ package datos
 
 import (
 	"context"
-	"crypto/rand"
 	"database/sql"
 	"fmt"
 	"io"
@@ -17,11 +16,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const (
-	longitudClaveGenerada = 12
-	alfabetoClave         = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"
-)
-
 var (
 	instanciaMu sync.Mutex
 	instancia   *Database
@@ -29,9 +23,9 @@ var (
 
 // Database abre pesaje.db en SistemaPesaje (paridad Java Database).
 type Database struct {
-	path              string
-	db                *sql.DB
-	mu                sync.Mutex
+	path               string
+	db                 *sql.DB
+	mu                 sync.Mutex
 	claveAdministrador string
 }
 
@@ -143,7 +137,7 @@ func (d *Database) sembrarAdministrador() error {
 	if n > 0 {
 		return nil
 	}
-	pwd := generarClaveAleatoria()
+	pwd := ClaveAdministradorInicial
 	ahora := time.Now().Format("2006-01-02 15:04:05")
 	res, err := d.db.Exec(
 		`INSERT INTO personas (nombre, apellido_paterno, correo, estado, fecha_creacion) VALUES (?, ?, ?, ?, ?)`,
@@ -185,16 +179,6 @@ func (d *Database) sembrarConfigBalanzaPruebas() error {
 	}
 	fmt.Fprintf(os.Stderr, "[SistemaPesaje] Báscula de pruebas: puerto SIM (sin hardware).\n")
 	return nil
-}
-
-func generarClaveAleatoria() string {
-	b := make([]byte, longitudClaveGenerada)
-	for i := range b {
-		var rb [1]byte
-		_, _ = rand.Read(rb[:])
-		b[i] = alfabetoClave[int(rb[0])%len(alfabetoClave)]
-	}
-	return string(b)
 }
 
 func (d *Database) generarBackup() error {

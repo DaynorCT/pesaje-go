@@ -1,10 +1,8 @@
 import logo from './assets/images/logo-pesaje.jpg';
 import type { LoginRespuesta } from './login';
+import { montarPesaje } from './modulos/pesaje';
 import {
-  AlternarBalanza,
-  CapturarPeso,
   CerrarSesion,
-  EnviarPeso,
   EstadoIntegrado,
   SincronizarAhora,
   SolicitarSistemaCompleto,
@@ -36,7 +34,10 @@ type Accion = {
   estado?: EstadoIntegrado;
 };
 
-export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable<LoginRespuesta['usuario']>): void {
+export function montarModoIntegrado(
+  contenedor: HTMLElement,
+  sesion: NonNullable<LoginRespuesta['usuario']>,
+): () => void {
   contenedor.innerHTML = `
     <div class="modo-integrado root">
       <header class="barra-superior">
@@ -64,23 +65,7 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
           <span id="pill-sync" class="badge badge-activo">Al día</span>
         </div>
       </header>
-      <main class="integrado-centro">
-        <section class="tarjeta tarjeta-sin-padding integrado-tarjeta">
-          <div class="integrado-encabezado">
-            <h2 class="titulo-tarjeta">Registro de peso</h2>
-          </div>
-          <div class="separador-horizontal"></div>
-          <div class="integrado-cuerpo">
-            <div class="display-peso">
-              <span class="valor-peso" id="valor-peso">0 kg</span>
-            </div>
-            <button type="button" class="boton-secundario integrado-ancho" id="btn-balanza">Conectar balanza</button>
-            <button type="button" class="boton-secundario integrado-ancho" id="btn-capturar" disabled>Capturar peso</button>
-            <p class="subtitulo integrado-captura" id="peso-capturado">Peso capturado: 0 kg</p>
-            <button type="button" class="boton-primario integrado-ancho" id="btn-enviar" disabled>Enviar a la web</button>
-          </div>
-        </section>
-      </main>
+      <main class="integrado-centro integrado-centro--pesaje shell-contenido-abm" id="integrado-pesaje-host"></main>
       <div id="montaje-dialogos-integrado"></div>
     </div>
   `;
@@ -90,16 +75,13 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
 
   const estadoBalanza = contenedor.querySelector('#estado-balanza') as HTMLElement;
   const pillSync = contenedor.querySelector('#pill-sync') as HTMLElement;
-  const valorPeso = contenedor.querySelector('#valor-peso') as HTMLElement;
-  const pesoCapturado = contenedor.querySelector('#peso-capturado') as HTMLElement;
-  const btnBalanza = contenedor.querySelector('#btn-balanza') as HTMLButtonElement;
-  const btnCapturar = contenedor.querySelector('#btn-capturar') as HTMLButtonElement;
-  const btnEnviar = contenedor.querySelector('#btn-enviar') as HTMLButtonElement;
   const btnSync = contenedor.querySelector('#btn-sync') as HTMLButtonElement;
   const btnMenu = contenedor.querySelector('#btn-menu') as HTMLButtonElement;
   const menu = contenedor.querySelector('#menu-flotante') as HTMLDivElement;
   const slotDialogos = contenedor.querySelector('#montaje-dialogos-integrado') as HTMLElement;
+  const hostPesaje = contenedor.querySelector('#integrado-pesaje-host') as HTMLElement;
   const aviso = crearDialogoAviso(slotDialogos, 'dlg-aviso', 'compacto');
+  const limpiarPesaje = montarPesaje(hostPesaje);
 
   const wrapPwd = document.createElement('div');
   wrapPwd.innerHTML = htmlShellDialogo({
@@ -147,11 +129,7 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
     estadoBalanza.className = e.balanzaConectada ? 'mensaje-exito' : 'subtitulo';
     pillSync.textContent = e.syncTexto;
     pillSync.className = `badge badge-${e.syncVariante === 'activo' ? 'activo' : e.syncVariante === 'inactivo' ? 'inactivo' : 'proceso'}`;
-    valorPeso.textContent = formatearPeso(e.pesoVivo);
-    pesoCapturado.textContent = `Peso capturado: ${formatearPeso(e.pesoCapturado)}`;
-    btnBalanza.textContent = e.textoConectar;
-    btnCapturar.disabled = !e.puedeCapturar;
-    btnEnviar.disabled = !e.puedeEnviar;
+    btnSync.disabled = !e.syncDisponible;
   };
 
   const manejarAccion = (acc: Accion) => {
@@ -161,15 +139,6 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
 
   void EstadoIntegrado().then((e) => aplicarEstado(e as EstadoIntegrado));
 
-  btnBalanza.addEventListener('click', () => {
-    void AlternarBalanza().then((a) => manejarAccion(a as Accion));
-  });
-  btnCapturar.addEventListener('click', () => {
-    void CapturarPeso().then((a) => manejarAccion(a as Accion));
-  });
-  btnEnviar.addEventListener('click', () => {
-    void EnviarPeso().then((a) => manejarAccion(a as Accion));
-  });
   btnSync.addEventListener('click', () => {
     void SincronizarAhora().then((a) => manejarAccion(a as Accion));
   });
@@ -177,11 +146,19 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
   btnMenu.addEventListener('click', () => {
     menu.hidden = !menu.hidden;
   });
-  document.addEventListener('click', (ev) => {
+
+  const cerrarMenuFlotante = (ev: MouseEvent) => {
     if (!menu.hidden && !menu.contains(ev.target as Node) && ev.target !== btnMenu) {
       menu.hidden = true;
     }
-  });
+  };
+  document.addEventListener('click', cerrarMenuFlotante);
+
+  const alSalir = () => {
+    document.removeEventListener('click', cerrarMenuFlotante);
+    window.clearInterval(timerSync);
+    limpiarPesaje();
+  };
 
   menu.querySelectorAll('button[data-accion]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -202,6 +179,7 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
       }
       if (accion === 'cerrar') {
         if (window.confirm('¿Seguro que desea cerrar sesión?')) {
+          alSalir();
           CerrarSesion();
           import('./login').then(({ montarLogin }) => montarLogin(contenedor));
         }
@@ -217,6 +195,7 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
       dlgPwd.close();
       const acc = a as Accion;
       if (acc.ok) {
+        alSalir();
         import('./shell').then(({ montarShell }) => montarShell(contenedor, sesion));
         return;
       }
@@ -224,13 +203,10 @@ export function montarModoIntegrado(contenedor: HTMLElement, sesion: NonNullable
     });
   });
 
-  window.setInterval(() => {
+  const timerSync = window.setInterval(() => {
     void EstadoIntegrado().then((e) => aplicarEstado(e as EstadoIntegrado));
   }, 2000);
 
   void sesion;
-}
-
-function formatearPeso(peso: number): string {
-  return `${peso.toLocaleString('es-BO')} kg`;
+  return alSalir;
 }

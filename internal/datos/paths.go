@@ -8,13 +8,14 @@ import (
 )
 
 const (
-	CarpetaDatos          = "SistemaPesaje"
-	ArchivoBase           = "pesaje.db"
-	ArchivoBackup         = "pesaje.db.backup"
-	VariableEntornoRuta   = "PESAJE_DB_PATH"
-	PropiedadSistemaRuta  = "pesaje.db.path"
-	VersionEsquema        = 2
-	EmailAdministrador    = "admin@sistema.com"
+	CarpetaDatos               = "SistemaPesaje"
+	ArchivoBase                = "pesaje.db"
+	ArchivoBackup              = "pesaje.db.backup"
+	VariableEntornoRuta        = "PESAJE_DB_PATH"
+	PropiedadSistemaRuta       = "pesaje.db.path"
+	VersionEsquema             = 2
+	EmailAdministrador         = "admin@sistema.com"
+	ClaveAdministradorInicial  = "admin123"
 )
 
 // RutaResuelta devuelve la ruta efectiva de pesaje.db.

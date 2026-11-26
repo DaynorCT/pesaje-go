@@ -8,18 +8,42 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-func (a *App) activarVentanaShell() {
-	runtime.WindowSetAlwaysOnTop(a.ctx, false)
-	runtime.WindowSetMinSize(a.ctx, 800, 600)
+const (
+	ventanaLoginAncho     = 460
+	ventanaLoginAlto      = 520
+	ventanaLoginMinAncho  = 420
+	ventanaLoginMinAlto   = 480
+	ventanaLoginMaxAncho  = 520
+	ventanaLoginMaxAlto   = 640
+
+	ventanaEscritorioAncho    = 1280
+	ventanaEscritorioAlto     = 800
+	ventanaEscritorioMinAncho = 800
+	ventanaEscritorioMinAlto  = 600
+)
+
+func (a *App) aplicarTamanoEscritorio() {
 	runtime.WindowSetMaxSize(a.ctx, 0, 0)
-	runtime.WindowSetSize(a.ctx, 1280, 800)
+	runtime.WindowSetMinSize(a.ctx, ventanaEscritorioMinAncho, ventanaEscritorioMinAlto)
+	runtime.WindowSetSize(a.ctx, ventanaEscritorioAncho, ventanaEscritorioAlto)
 }
 
+func (a *App) activarVentanaLogin() {
+	runtime.WindowSetAlwaysOnTop(a.ctx, false)
+	runtime.WindowSetMaxSize(a.ctx, ventanaLoginMaxAncho, ventanaLoginMaxAlto)
+	runtime.WindowSetMinSize(a.ctx, ventanaLoginMinAncho, ventanaLoginMinAlto)
+	runtime.WindowSetSize(a.ctx, ventanaLoginAncho, ventanaLoginAlto)
+}
+
+func (a *App) activarVentanaShell() {
+	a.aplicarTamanoEscritorio()
+	runtime.WindowSetAlwaysOnTop(a.ctx, false)
+}
+
+// activarVentanaIntegrado: mismo tamaño que el sistema completo; mantiene always-on-top de config.
 func (a *App) activarVentanaIntegrado() {
+	a.aplicarTamanoEscritorio()
 	cfg := config.Cargar()
-	runtime.WindowSetMinSize(a.ctx, 420, 600)
-	runtime.WindowSetMaxSize(a.ctx, 0, 0)
-	runtime.WindowSetSize(a.ctx, 480, 680)
 	runtime.WindowSetAlwaysOnTop(a.ctx, cfg.AlwaysOnTop)
 }
 

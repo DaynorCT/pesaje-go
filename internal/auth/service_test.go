@@ -36,6 +36,9 @@ func TestElAdministradorSembradoPuedeIniciarSesion(t *testing.T) {
 	if pwd == "" {
 		t.Fatal("el primer arranque debe sembrar el administrador")
 	}
+	if pwd != datos.ClaveAdministradorInicial {
+		t.Fatalf("clave inicial esperada %q, got %q", datos.ClaveAdministradorInicial, pwd)
+	}
 
 	res := svc.Autenticar(context.Background(), datos.EmailAdministrador, pwd)
 	if !res.EsExito() {
