@@ -44,6 +44,14 @@ import {
   sincronizarSwitchEstado,
 } from '../tablas-acciones';
 import { iconoModuloHTML } from '../iconos-modulo';
+import {
+  actualizarOpcionesCombo,
+  enlazarCombosBuscadores,
+  establecerValorCombo,
+  htmlComboBuscador,
+  leerIdCombo,
+  seleccionarPrimeraOpcion,
+} from '../combo-buscador';
 
 type Opcion = { id: number; label: string };
 
@@ -280,7 +288,7 @@ export function montarPesaje(host: HTMLElement, montaje?: MontarPesajeOpciones):
     <label class="pesaje-campo">
       <span class="etiqueta-mini">${label}</span>
       <span class="pesaje-fila-combo">
-        <select class="combo-web" id="${id}"></select>
+        ${htmlComboBuscador(id)}
         ${plus ? `<button type="button" class="boton-mas" data-plus="${plus}">+</button>` : ''}
       </span>
     </label>
@@ -304,9 +312,10 @@ export function montarPesaje(host: HTMLElement, montaje?: MontarPesajeOpciones):
     </label>
   `;
 
+  enlazarCombosBuscadores(host);
+
   const llenarSelect = (id: string, items: Opcion[]) => {
-    const sel = qs<HTMLSelectElement>(`#${id}`);
-    sel.innerHTML = items.map((o) => `<option value="${o.id}">${escapeHtml(o.label)}</option>`).join('');
+    actualizarOpcionesCombo(host, id, items);
   };
 
   recargarOpciones = async () => {
@@ -335,7 +344,7 @@ export function montarPesaje(host: HTMLElement, montaje?: MontarPesajeOpciones):
     (xs || []).map((x) => ({ id: x.id, label: x.label }));
 
   alCambiarChofer = async () => {
-    const id = Number(qs<HTMLSelectElement>('#sel-chofer').value);
+    const id = leerIdCombo(host, 'sel-chofer');
     if (!id) {
       qs<HTMLInputElement>('#licencia').value = '';
       return;
@@ -345,7 +354,7 @@ export function montarPesaje(host: HTMLElement, montaje?: MontarPesajeOpciones):
   };
 
   alCambiarVehiculo = async () => {
-    const id = Number(qs<HTMLSelectElement>('#sel-vehiculo').value);
+    const id = leerIdCombo(host, 'sel-vehiculo');
     if (!id) {
       qs<HTMLInputElement>('#tipo-vehiculo').value = '';
       return;
@@ -484,8 +493,7 @@ export function montarPesaje(host: HTMLElement, montaje?: MontarPesajeOpciones):
 
   const restablecerFormularioNuevo = async () => {
     const primer = (selId: string) => {
-      const el = qs<HTMLSelectElement>(`#${selId}`);
-      if (el.options.length > 0) el.selectedIndex = 0;
+      seleccionarPrimeraOpcion(host, selId);
     };
     primer('sel-vehiculo');
     primer('sel-chofer');
@@ -531,8 +539,7 @@ export function montarPesaje(host: HTMLElement, montaje?: MontarPesajeOpciones):
       return;
     }
     const sel = (idSel: string, val?: number) => {
-      const el = qs<HTMLSelectElement>(`#${idSel}`);
-      if (val && val > 0) el.value = String(val);
+      if (val && val > 0) establecerValorCombo(host, idSel, val, false);
     };
     sel('sel-vehiculo', det.vehiculoId);
     sel('sel-chofer', det.choferId);
@@ -601,7 +608,7 @@ export function montarPesaje(host: HTMLElement, montaje?: MontarPesajeOpciones):
   qs('#btn-cancelar-edicion').addEventListener('click', () => cancelarEdicion());
 
   qs('#btn-guardar').addEventListener('click', () => {
-    const vehiculoId = Number(qs<HTMLSelectElement>('#sel-vehiculo').value);
+    const vehiculoId = leerIdCombo(host, 'sel-vehiculo');
     const payload = {
       vehiculoId,
       choferId: opcionId(host, 'sel-chofer'),
@@ -801,8 +808,8 @@ export function montarPesaje(host: HTMLElement, montaje?: MontarPesajeOpciones):
 }
 
 function opcionId(root: HTMLElement, selId: string): number | undefined {
-  const v = (root.querySelector(`#${selId}`) as HTMLSelectElement)?.value;
-  return v ? Number(v) : undefined;
+  const v = leerIdCombo(root, selId);
+  return v > 0 ? v : undefined;
 }
 
 function tdCelda(texto: string, clases = ''): string {
