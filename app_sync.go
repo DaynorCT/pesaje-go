@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"strings"
 
 	"sistema-pesaje/internal/config"
@@ -45,6 +46,23 @@ func (a *App) syncAlMostrar() {
 		}
 		svc.SincronizarAhora()
 	}()
+}
+
+// encolarPesajeWeb encola el pesaje finalizado y dispara un intento de sync en segundo plano.
+func (a *App) encolarPesajeWeb(pesajeID int64) {
+	if a.db == nil || pesajeID <= 0 {
+		return
+	}
+	a.muSync.Lock()
+	svc := a.syncSvc
+	a.muSync.Unlock()
+	if svc == nil {
+		return
+	}
+	if err := svc.EncolarPesaje(context.Background(), a.db.Conn(), pesajeID); err != nil {
+		return
+	}
+	a.syncAlMostrar()
 }
 
 func (a *App) textoSyncIntegrado() (texto, variante string) {

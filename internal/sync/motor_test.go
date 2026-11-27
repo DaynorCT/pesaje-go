@@ -3,6 +3,7 @@ package sync
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"sistema-pesaje/internal/datos"
@@ -60,10 +61,14 @@ func TestSinTokenValidoNoIntentaEnviar(t *testing.T) {
 
 func TestElPayloadDePesajeNoLlevaGuia(t *testing.T) {
 	payload := PayloadPesaje("evento-1", PesajeParaEnvio{
+		ID:            125,
+		SyncEventID:   "evento-1",
 		Guia:          "PESO-2026-000001",
 		VehiculoID:    7,
 		PesoBruto:     10000,
 		Tara:          4000,
+		PesoNeto:      6000,
+		Estado:        "ACTIVO",
 		EstadoBalanza: "FINALIZADO",
 	})
 	if !PayloadSinGuia(payload) {
@@ -71,6 +76,9 @@ func TestElPayloadDePesajeNoLlevaGuia(t *testing.T) {
 	}
 	if payload == "" || payload[0] != '{' {
 		t.Fatal("json")
+	}
+	if !strings.Contains(payload, "sync_event_id") || !strings.Contains(payload, "pesaje_id") {
+		t.Fatalf("faltan campos contrato: %s", payload)
 	}
 }
 

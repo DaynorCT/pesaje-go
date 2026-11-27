@@ -426,7 +426,7 @@ func (a *App) PesajeRegistrar(dto RegistrarPesajeDTO) AccionDTO {
 		est := a.construirEstadoPesajePane()
 		return AccionDTO{OK: false, EstadoPesaje: ptrEstadoPesaje(est)}
 	}
-	id, err := datos.GuardarPesaje(context.Background(), a.db.Conn(), datos.NuevoPesaje{
+	_, err := datos.GuardarPesaje(context.Background(), a.db.Conn(), datos.NuevoPesaje{
 		VehiculoID:         dto.VehiculoID,
 		ChoferID:           dto.ChoferID,
 		ProveedorID:        dto.ProveedorID,
@@ -444,12 +444,6 @@ func (a *App) PesajeRegistrar(dto RegistrarPesajeDTO) AccionDTO {
 		a.pesajeEstablecerMensaje(err.Error(), true)
 		est := a.construirEstadoPesajePane()
 		return AccionDTO{OK: false, EstadoPesaje: ptrEstadoPesaje(est)}
-	}
-	a.muSync.Lock()
-	svc := a.syncSvc
-	a.muSync.Unlock()
-	if svc != nil {
-		_ = svc.EncolarPesaje(context.Background(), a.db.Conn(), id)
 	}
 	a.muPesaje.Lock()
 	a.pesajeUI.pesoBruto = 0
@@ -482,6 +476,7 @@ func (a *App) PesajeFinalizar(id int64) AccionDTO {
 	if err := datos.FinalizarPesaje(context.Background(), a.db.Conn(), id, a.sesion.ID); err != nil {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Finalizar", Mensaje: err.Error(), EsError: true}}
 	}
+	a.encolarPesajeWeb(id)
 	return AccionDTO{OK: true}
 }
 

@@ -4,41 +4,70 @@ import (
 	"strings"
 )
 
-// PesajeParaEnvio datos mínimos para armar el JSON del servidor.
+// PesajeParaEnvio datos para POST de pesaje finalizado al centralizador web.
 type PesajeParaEnvio struct {
-	ID              int64
-	SyncEventID     string
-	Guia            string
-	VehiculoID      int64
-	ChoferID        *int64
-	ProveedorID     *int64
-	ProductoID      *int64
-	OrigenID        *int64
-	DestinoID       *int64
-	PesoBruto       int
-	Tara            int
-	CostoBs         int
-	FleteBsPendiente int
-	EstadoBalanza   string
-	FechaCreacion   string
+	ID                int64
+	SyncEventID       string
+	Guia              string
+	VehiculoID        int64
+	ChoferID          *int64
+	ProveedorID       *int64
+	ProductoID        *int64
+	OrigenID          *int64
+	DestinoID         *int64
+	PesoBruto         int
+	Tara              int
+	PesoNeto          int
+	CostoBs           int
+	FleteBsPendiente  int
+	Estado            string
+	EstadoBalanza     string
+	PesadorID         *int64
+	FechaCreacion     string
+	FechaFinalizacion string
 }
 
-// PayloadPesaje JSON sin guía (la asigna el servidor).
+// PayloadPesaje JSON sin guía (la asigna el servidor web si aplica).
 func PayloadPesaje(clientEventID string, p PesajeParaEnvio) string {
+	syncID := p.SyncEventID
+	if syncID == "" {
+		syncID = clientEventID
+	}
+	neto := p.PesoNeto
+	if neto <= 0 && p.PesoBruto > p.Tara {
+		neto = p.PesoBruto - p.Tara
+	}
+	estado := strings.TrimSpace(p.Estado)
+	if estado == "" {
+		estado = "ACTIVO"
+	}
+	balanza := strings.TrimSpace(p.EstadoBalanza)
+	if balanza == "" {
+		balanza = "FINALIZADO"
+	}
 	cuerpo := map[string]any{
-		"client_event_id": clientEventID,
-		"vehiculo_id":     p.VehiculoID,
-		"chofer_id":       referenciaID(p.ChoferID),
-		"proveedor_id":    referenciaID(p.ProveedorID),
-		"producto_id":     referenciaID(p.ProductoID),
-		"id_origen":       referenciaID(p.OrigenID),
-		"id_destino":      referenciaID(p.DestinoID),
-		"peso_bruto":      p.PesoBruto,
-		"tara":            p.Tara,
-		"costo_bs":        p.CostoBs,
-		"flete_bs_pendiente": p.FleteBsPendiente,
-		"estado_balanza":  p.EstadoBalanza,
-		"fecha_creacion":  p.FechaCreacion,
+		"sync_event_id":       syncID,
+		"client_event_id":     clientEventID,
+		"pesaje_id":           p.ID,
+		"vehiculo_id":         p.VehiculoID,
+		"chofer_id":           referenciaID(p.ChoferID),
+		"proveedor_id":        referenciaID(p.ProveedorID),
+		"producto_id":         referenciaID(p.ProductoID),
+		"origen_id":           referenciaID(p.OrigenID),
+		"destino_id":          referenciaID(p.DestinoID),
+		"peso_bruto":          p.PesoBruto,
+		"tara":                p.Tara,
+		"peso_neto":           neto,
+		"costo_bs":            p.CostoBs,
+		"flete_bs_pendiente":  p.FleteBsPendiente,
+		"estado":              estado,
+		"estado_balanza":      balanza,
+		"fecha_creacion":      p.FechaCreacion,
+		"fecha_finalizacion":  p.FechaFinalizacion,
+		"operador_id":         referenciaID(p.PesadorID),
+		// Compatibilidad con consumidores que esperaban nombres anteriores.
+		"id_origen":           referenciaID(p.OrigenID),
+		"id_destino":          referenciaID(p.DestinoID),
 	}
 	return escribirJSON(cuerpo)
 }

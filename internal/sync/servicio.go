@@ -85,22 +85,39 @@ func pesajeParaEnvio(p datos.PesajeParaSync) PesajeParaEnvio {
 	if p.FleteBsPendiente.Valid {
 		flete = int(p.FleteBsPendiente.Int64)
 	}
+	neto := p.PesoNeto
+	if neto <= 0 {
+		neto = p.PesoBruto - p.Tara
+	}
+	var operador *int64
+	if p.PesadorID.Valid {
+		v := p.PesadorID.Int64
+		operador = &v
+	}
+	fin := p.FechaModificacion
+	if fin == "" {
+		fin = p.FechaCreacion
+	}
 	return PesajeParaEnvio{
-		ID:               p.ID,
-		SyncEventID:      p.SyncEventID,
-		Guia:             p.Guia,
-		VehiculoID:       p.VehiculoID,
-		ChoferID:         chofer,
-		ProveedorID:      prov,
-		ProductoID:       prod,
-		OrigenID:         orig,
-		DestinoID:        dest,
-		PesoBruto:        p.PesoBruto,
-		Tara:             p.Tara,
-		CostoBs:          costo,
-		FleteBsPendiente: flete,
-		EstadoBalanza:    p.EstadoBalanza,
-		FechaCreacion:    p.FechaCreacion,
+		ID:                p.ID,
+		SyncEventID:       p.SyncEventID,
+		Guia:              p.Guia,
+		VehiculoID:        p.VehiculoID,
+		ChoferID:          chofer,
+		ProveedorID:       prov,
+		ProductoID:        prod,
+		OrigenID:          orig,
+		DestinoID:         dest,
+		PesoBruto:         p.PesoBruto,
+		Tara:              p.Tara,
+		PesoNeto:          neto,
+		CostoBs:           costo,
+		FleteBsPendiente:  flete,
+		Estado:            p.Estado,
+		EstadoBalanza:     p.EstadoBalanza,
+		PesadorID:         operador,
+		FechaCreacion:     p.FechaCreacion,
+		FechaFinalizacion: fin,
 	}
 }
 
