@@ -27,12 +27,9 @@ type PesajeParaEnvio struct {
 	FechaFinalizacion string
 }
 
-// PayloadPesaje JSON sin guía (la asigna el servidor web si aplica).
+// PayloadPesaje JSON del pesaje finalizado para el centralizador (sin ids de cola).
 func PayloadPesaje(clientEventID string, p PesajeParaEnvio) string {
-	syncID := p.SyncEventID
-	if syncID == "" {
-		syncID = clientEventID
-	}
+	_ = clientEventID
 	neto := p.PesoNeto
 	if neto <= 0 && p.PesoBruto > p.Tara {
 		neto = p.PesoBruto - p.Tara
@@ -46,8 +43,6 @@ func PayloadPesaje(clientEventID string, p PesajeParaEnvio) string {
 		balanza = "FINALIZADO"
 	}
 	cuerpo := map[string]any{
-		"sync_event_id":       syncID,
-		"client_event_id":     clientEventID,
 		"pesaje_id":           p.ID,
 		"vehiculo_id":         p.VehiculoID,
 		"chofer_id":           referenciaID(p.ChoferID),
@@ -65,9 +60,11 @@ func PayloadPesaje(clientEventID string, p PesajeParaEnvio) string {
 		"fecha_creacion":      p.FechaCreacion,
 		"fecha_finalizacion":  p.FechaFinalizacion,
 		"operador_id":         referenciaID(p.PesadorID),
-		// Compatibilidad con consumidores que esperaban nombres anteriores.
-		"id_origen":           referenciaID(p.OrigenID),
-		"id_destino":          referenciaID(p.DestinoID),
+	}
+	guia := strings.TrimSpace(p.Guia)
+	if guia != "" {
+		cuerpo["guia"] = guia
+		cuerpo["numero_boleta"] = guia
 	}
 	return escribirJSON(cuerpo)
 }

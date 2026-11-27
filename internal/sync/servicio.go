@@ -3,6 +3,7 @@ package sync
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -13,12 +14,15 @@ import (
 	"sistema-pesaje/internal/datos"
 )
 
+var tablasCatalogoPush = []string{"choferes", "proveedores", "vehiculos", "productos", "origenes", "destinos"}
+
 const IntervaloAutomaticoMinutos = 2
 
 // Servicio orquesta el motor y la cola.
 type Servicio struct {
 	motor         *Motor
 	outbox        *Outbox
+	db            *sql.DB
 	mu            sync.Mutex
 	ultimo        ResultadoSync
 	ultimoMensaje string
@@ -35,7 +39,7 @@ func Crear(cfg config.Sistema, db *sql.DB, correo, contrasena string) *Servicio 
 	outbox := NuevoOutbox(db)
 	aplicador := NuevoAplicador(db)
 	motor := NuevoMotor(t, sesion, outbox, aplicador)
-	return &Servicio{motor: motor, outbox: outbox}
+	return &Servicio{motor: motor, outbox: outbox, db: db}
 }
 
 func (s *Servicio) EncolarPesaje(ctx context.Context, db *sql.DB, pesajeID int64) error {
@@ -53,6 +57,40 @@ func (s *Servicio) EncolarPesaje(ctx context.Context, db *sql.DB, pesajeID int64
 	envio := pesajeParaEnvio(p)
 	payload := PayloadPesaje(clientEventID, envio)
 	return s.outbox.Encolar(clientEventID, "pesajes", int(pesajeID), payload)
+}
+
+func (s *Servicio) EncolarCatalogo(ctx context.Context, db *sql.DB, recurso string, entidadID int64) error {
+	if s == nil || db == nil || entidadID <= 0 {
+		return nil
+	}
+	activo, err := s.outbox.TieneEventoActivo(recurso, int(entidadID))
+	if err != nil {
+		return err
+	}
+	if activo {
+		return nil
+	}
+	payload, err := datos.CargarCatalogoParaSync(ctx, db, recurso, entidadID)
+	if err != nil {
+		return err
+	}
+	clientEventID := fmt.Sprintf("catalogo-%s-%d", recurso, entidadID)
+	return s.outbox.Encolar(clientEventID, recurso, int(entidadID), payload)
+}
+
+func (s *Servicio) AsegurarCatalogosPendientes(ctx context.Context, db *sql.DB) {
+	if s == nil || db == nil {
+		return
+	}
+	for _, tabla := range tablasCatalogoPush {
+		ids, err := datos.ListarIDsConPendientePush(ctx, db, tabla)
+		if err != nil {
+			continue
+		}
+		for _, id := range ids {
+			_ = s.EncolarCatalogo(ctx, db, tabla, id)
+		}
+	}
 }
 
 func pesajeParaEnvio(p datos.PesajeParaSync) PesajeParaEnvio {
@@ -148,6 +186,7 @@ func (s *Servicio) SincronizarAhora() ResultadoSync {
 			log.Printf("[sync] vuelta: %v", r)
 		}
 	}()
+	s.AsegurarCatalogosPendientes(context.Background(), s.db)
 	res := s.motor.Sincronizar()
 	s.mu.Lock()
 	s.ultimo = res

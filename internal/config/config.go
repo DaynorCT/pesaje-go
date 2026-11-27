@@ -9,12 +9,18 @@ import (
 	"sistema-pesaje/internal/datos"
 )
 
+const (
+	ModoSyncWeb          = "web"
+	ModoSyncOfflineFirst = "offline_first"
+)
+
 // Sistema es la configuración persistida en config.json (paridad ConfigSistema Java).
 type Sistema struct {
 	URL            string `json:"url"`
 	APIKey         string `json:"apikey"`
 	AutoEnviar     bool   `json:"autoenviar"`
 	ModoOperacion  string `json:"modo_operacion"`
+	ModoSync       string `json:"modo_sync"`
 	AlwaysOnTop    bool   `json:"alwaysontop"`
 	TimeoutHTTP    int    `json:"timeout_http"`
 	CicloCatalogos int    `json:"ciclo_catalogos"`
@@ -28,6 +34,7 @@ func Cargar() Sistema {
 		URL:            "http://localhost:3000",
 		AutoEnviar:     true,
 		ModoOperacion:  "INTEGRADO",
+		ModoSync:       ModoSyncOfflineFirst,
 		TimeoutHTTP:    4000,
 		CicloCatalogos: 5,
 	}
@@ -52,5 +59,32 @@ func Cargar() Sistema {
 	if leida.ModoOperacion == "" {
 		leida.ModoOperacion = def.ModoOperacion
 	}
+	leida.ModoSync = normalizarModoSync(leida.ModoSync)
 	return leida
+}
+
+func normalizarModoSync(m string) string {
+	m = strings.ToLower(strings.TrimSpace(m))
+	switch m {
+	case ModoSyncOfflineFirst, "offline-first", "offlinefirst":
+		return ModoSyncOfflineFirst
+	default:
+		return ModoSyncWeb
+	}
+}
+
+// EsOfflineFirst indica cola con catálogos antes que pesajes (centralizador offline-first).
+func (s Sistema) EsOfflineFirst() bool {
+	return normalizarModoSync(s.ModoSync) == ModoSyncOfflineFirst
+}
+
+// Guardar persiste config.json en la carpeta de datos.
+func Guardar(s Sistema) error {
+	s.ModoSync = normalizarModoSync(s.ModoSync)
+	ruta := filepath.Join(datos.DirectorioDatos(), archivo)
+	b, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(ruta, b, 0o644)
 }

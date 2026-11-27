@@ -507,9 +507,11 @@ func (a *App) PesajeCrearVehiculo(placa, tipo string, tara int) AccionDTO {
 	if a.db == nil {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Nuevo vehículo", Mensaje: "Base no disponible.", EsError: true}}
 	}
-	if _, err := datos.CrearVehiculo(context.Background(), a.db.Conn(), placa, strings.TrimSpace(tipo), tara); err != nil {
+	vid, err := datos.CrearVehiculo(context.Background(), a.db.Conn(), placa, strings.TrimSpace(tipo), tara)
+	if err != nil {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Nuevo vehículo", Mensaje: err.Error(), EsError: true}}
 	}
+	a.encolarCatalogoWeb("vehiculos", vid)
 	a.pesajeEstablecerMensaje("Vehículo creado.", false)
 	return AccionDTO{OK: true}
 }
@@ -524,9 +526,11 @@ func (a *App) PesajeCrearChofer(nombre, apPat, apMat, ci, tel, licencia string) 
 	if a.db == nil {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Nuevo chofer", Mensaje: "Base no disponible.", EsError: true}}
 	}
-	if _, err := datos.CrearChofer(context.Background(), a.db.Conn(), nombre, apPat, apMat, ci, tel, licencia); err != nil {
+	cid, err := datos.CrearChofer(context.Background(), a.db.Conn(), nombre, apPat, apMat, ci, tel, licencia)
+	if err != nil {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Nuevo chofer", Mensaje: err.Error(), EsError: true}}
 	}
+	a.encolarCatalogoWeb("choferes", cid)
 	a.pesajeEstablecerMensaje("Chofer creado.", false)
 	return AccionDTO{OK: true}
 }
@@ -541,9 +545,11 @@ func (a *App) PesajeCrearProveedor(nombre, apPat, apMat, ci, tel, empresa, descr
 	if a.db == nil {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Nuevo proveedor", Mensaje: "Base no disponible.", EsError: true}}
 	}
-	if _, err := datos.CrearProveedor(context.Background(), a.db.Conn(), nombre, apPat, apMat, ci, tel, empresa, descripcion); err != nil {
+	pid, err := datos.CrearProveedor(context.Background(), a.db.Conn(), nombre, apPat, apMat, ci, tel, empresa, descripcion)
+	if err != nil {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: "Nuevo proveedor", Mensaje: err.Error(), EsError: true}}
 	}
+	a.encolarCatalogoWeb("proveedores", pid)
 	a.pesajeEstablecerMensaje("Proveedor creado.", false)
 	return AccionDTO{OK: true}
 }
@@ -556,12 +562,14 @@ func (a *App) pesajeCrearCatalogo(titulo, entidad, nombre, descripcion string) A
 	if a.db == nil {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: titulo, Mensaje: "Base no disponible.", EsError: true}}
 	}
-	if err := datos.AbmGuardar(context.Background(), a.db.Conn(), entidad, 0, map[string]string{
+	nid, err := datos.AbmGuardarConID(context.Background(), a.db.Conn(), entidad, 0, map[string]string{
 		"nombre":      nombre,
 		"descripcion": strings.TrimSpace(descripcion),
-	}); err != nil {
+	})
+	if err != nil {
 		return AccionDTO{OK: false, Aviso: &AvisoDTO{Titulo: titulo, Mensaje: err.Error(), EsError: true}}
 	}
+	a.encolarCatalogoWeb(entidad, nid)
 	a.pesajeEstablecerMensaje(strings.TrimPrefix(titulo, "Nuevo ")+" creado.", false)
 	return AccionDTO{OK: true}
 }

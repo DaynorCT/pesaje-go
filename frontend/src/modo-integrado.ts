@@ -15,7 +15,7 @@ import {
   htmlShellDialogo,
 } from './dialogo';
 
-export type EstadoIntegrado = {
+export type EstadoIntegradoView = {
   balanzaConectada: boolean;
   balanzaTexto: string;
   syncTexto: string;
@@ -26,12 +26,13 @@ export type EstadoIntegrado = {
   puedeCapturar: boolean;
   puedeEnviar: boolean;
   syncDisponible: boolean;
+  centralizadorOfflineFirst?: boolean;
 };
 
 type Accion = {
   ok: boolean;
   aviso?: { titulo: string; mensaje: string; esError?: boolean };
-  estado?: EstadoIntegrado;
+  estado?: EstadoIntegradoView;
 };
 
 export function montarModoIntegrado(
@@ -62,6 +63,7 @@ export function montarModoIntegrado(
         <div class="barra-fila-estado subtitulo">
           <span>Balanza</span>
           <strong id="estado-balanza">desconectada</strong>
+          <span id="pill-offline" class="badge badge-proceso" hidden>Offline-first</span>
           <span id="pill-sync" class="badge badge-activo">Al día</span>
         </div>
       </header>
@@ -74,6 +76,7 @@ export function montarModoIntegrado(
   img.src = logo;
 
   const estadoBalanza = contenedor.querySelector('#estado-balanza') as HTMLElement;
+  const pillOffline = contenedor.querySelector('#pill-offline') as HTMLElement;
   const pillSync = contenedor.querySelector('#pill-sync') as HTMLElement;
   const btnSync = contenedor.querySelector('#btn-sync') as HTMLButtonElement;
   const btnMenu = contenedor.querySelector('#btn-menu') as HTMLButtonElement;
@@ -124,12 +127,14 @@ export function montarModoIntegrado(
     aviso.mostrar(titulo, mensaje, esError);
   };
 
-  const aplicarEstado = (e: EstadoIntegrado) => {
+  const aplicarEstado = (e: EstadoIntegradoView) => {
     estadoBalanza.textContent = e.balanzaTexto;
     estadoBalanza.className = e.balanzaConectada ? 'mensaje-exito' : 'subtitulo';
     pillSync.textContent = e.syncTexto;
     pillSync.className = `badge badge-${e.syncVariante === 'activo' ? 'activo' : e.syncVariante === 'inactivo' ? 'inactivo' : 'proceso'}`;
     btnSync.disabled = !e.syncDisponible;
+    const showOffline = e.centralizadorOfflineFirst ?? e.syncDisponible;
+    pillOffline.hidden = !showOffline;
   };
 
   const manejarAccion = (acc: Accion) => {
@@ -137,7 +142,7 @@ export function montarModoIntegrado(
     if (acc.aviso) mostrarAviso(acc.aviso.titulo, acc.aviso.mensaje, !!acc.aviso.esError);
   };
 
-  void EstadoIntegrado().then((e) => aplicarEstado(e as EstadoIntegrado));
+  void EstadoIntegrado().then((e) => aplicarEstado(e as EstadoIntegradoView));
 
   btnSync.addEventListener('click', () => {
     void SincronizarAhora().then((a) => manejarAccion(a as Accion));
@@ -204,7 +209,7 @@ export function montarModoIntegrado(
   });
 
   const timerSync = window.setInterval(() => {
-    void EstadoIntegrado().then((e) => aplicarEstado(e as EstadoIntegrado));
+    void EstadoIntegrado().then((e) => aplicarEstado(e as EstadoIntegradoView));
   }, 2000);
 
   void sesion;

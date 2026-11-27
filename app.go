@@ -89,7 +89,8 @@ type EstadoIntegradoDTO struct {
 	TextoConectar    string `json:"textoConectar"`
 	PuedeCapturar    bool   `json:"puedeCapturar"`
 	PuedeEnviar      bool   `json:"puedeEnviar"`
-	SyncDisponible   bool   `json:"syncDisponible"`
+	SyncDisponible              bool `json:"syncDisponible"`
+	CentralizadorOfflineFirst   bool `json:"centralizadorOfflineFirst"`
 }
 
 type AvisoDTO struct {
@@ -183,7 +184,8 @@ func (a *App) construirEstado() EstadoIntegradoDTO {
 		TextoConectar:    textoBtn,
 		PuedeCapturar:    a.integrado.conectado && a.integrado.pesoVivo > 0,
 		PuedeEnviar:      a.integrado.pesoCapturado > 0,
-		SyncDisponible:   syncDisp,
+		SyncDisponible:            syncDisp,
+		CentralizadorOfflineFirst: syncDisp && cfg.EsOfflineFirst(),
 	}
 }
 
@@ -245,7 +247,8 @@ func (a *App) construirEstadoUnlocked() EstadoIntegradoDTO {
 		TextoConectar:    textoBtn,
 		PuedeCapturar:    a.integrado.conectado && a.integrado.pesoVivo > 0,
 		PuedeEnviar:      a.integrado.pesoCapturado > 0,
-		SyncDisponible:   syncDisp,
+		SyncDisponible:            syncDisp,
+		CentralizadorOfflineFirst: syncDisp && cfg.EsOfflineFirst(),
 	}
 }
 

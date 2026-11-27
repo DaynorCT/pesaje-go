@@ -46,6 +46,10 @@ export function BoletaConfigObtener() {
   return window['go']['main']['App']['BoletaConfigObtener']();
 }
 
+export function CambiarModoSync(arg1) {
+  return window['go']['main']['App']['CambiarModoSync'](arg1);
+}
+
 export function CapturarPeso() {
   return window['go']['main']['App']['CapturarPeso']();
 }

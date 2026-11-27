@@ -73,9 +73,13 @@ func (a *App) AbmGuardar(dto AbmGuardarDTO) AbmResultadoDTO {
 			return AbmResultadoDTO{OK: false, Mensaje: "El campo Contraseña es obligatorio.", EsError: true}
 		}
 	}
-	err := datos.AbmGuardar(context.Background(), a.db.Conn(), entidad, dto.ID, dto.Campos)
+	id, err := datos.AbmGuardarConID(context.Background(), a.db.Conn(), entidad, dto.ID, dto.Campos)
 	if err != nil {
 		return AbmResultadoDTO{OK: false, Mensaje: err.Error(), EsError: true}
+	}
+	switch entidad {
+	case "productos", "origenes", "destinos", "vehiculos", "choferes", "proveedores":
+		a.encolarCatalogoWeb(entidad, id)
 	}
 	msg := "Registro actualizado."
 	if dto.ID <= 0 {

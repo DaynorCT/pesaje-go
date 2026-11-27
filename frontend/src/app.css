@@ -157,6 +157,43 @@ input.text-field:not(.password-field):not([data-casing='preserve']):not([type='e
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.modo-sync {
+  display: inline-flex;
+  border: 1px solid var(--pesaje-borde);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--pesaje-tarjeta);
+}
+
+.modo-sync-opcion {
+  border: none;
+  background: transparent;
+  color: var(--pesaje-texto);
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.modo-sync-opcion + .modo-sync-opcion {
+  border-left: 1px solid var(--pesaje-borde);
+}
+
+.modo-sync-opcion--activa {
+  background: var(--pesaje-primario);
+  color: #fff;
+}
+
+.modo-sync-opcion:not(.modo-sync-opcion--activa):hover {
+  background: #f3f4f6;
+}
+
+.barra-fila-estado #pill-modo-sync {
+  margin-left: 6px;
 }
 
 .menu-contenedor {

@@ -87,6 +87,7 @@ export namespace main {
 	    puedeCapturar: boolean;
 	    puedeEnviar: boolean;
 	    syncDisponible: boolean;
+	    centralizadorOfflineFirst: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new EstadoIntegradoDTO(source);
@@ -104,6 +105,7 @@ export namespace main {
 	        this.puedeCapturar = source["puedeCapturar"];
 	        this.puedeEnviar = source["puedeEnviar"];
 	        this.syncDisponible = source["syncDisponible"];
+	        this.centralizadorOfflineFirst = source["centralizadorOfflineFirst"];
 	    }
 	}
 	export class AvisoDTO {

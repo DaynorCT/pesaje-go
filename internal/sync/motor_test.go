@@ -71,14 +71,14 @@ func TestElPayloadDePesajeNoLlevaGuia(t *testing.T) {
 		Estado:        "ACTIVO",
 		EstadoBalanza: "FINALIZADO",
 	})
-	if !PayloadSinGuia(payload) {
-		t.Fatalf("contiene guia: %s", payload)
+	if strings.Contains(payload, "sync_event_id") || strings.Contains(payload, "client_event_id") {
+		t.Fatalf("ids de cola en payload: %s", payload)
 	}
 	if payload == "" || payload[0] != '{' {
 		t.Fatal("json")
 	}
-	if !strings.Contains(payload, "sync_event_id") || !strings.Contains(payload, "pesaje_id") {
-		t.Fatalf("faltan campos contrato: %s", payload)
+	if !strings.Contains(payload, "pesaje_id") {
+		t.Fatalf("falta pesaje_id: %s", payload)
 	}
 }
 

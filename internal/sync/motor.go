@@ -93,6 +93,9 @@ func (m *Motor) enviarEvento(evento EventoOutbox, resultado *ResultadoSync) {
 		m.aplicarConfirmacion(evento, resp)
 		webID := webIDDe(resp)
 		_ = m.outbox.MarcarEnviado(evento.ClientEventID, webID)
+		if evento.Recurso != "pesajes" && evento.EntidadID > 0 {
+			_ = m.aplicador.LimpiarPendientePush(evento.Recurso, evento.EntidadID)
+		}
 		resultado.SumarEnviado()
 		return
 	}

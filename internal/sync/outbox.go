@@ -39,7 +39,15 @@ func (o *Outbox) Pendientes() ([]EventoOutbox, error) {
 	rows, err := o.db.QueryContext(context.Background(), `
 SELECT client_event_id, recurso, entidad_id, payload, intentos FROM sync_outbox
 WHERE estado = ? AND (proximo_intento IS NULL OR proximo_intento <= ?)
-ORDER BY id ASC LIMIT ?`,
+ORDER BY CASE recurso
+  WHEN 'choferes' THEN 1
+  WHEN 'proveedores' THEN 2
+  WHEN 'vehiculos' THEN 3
+  WHEN 'productos' THEN 4
+  WHEN 'origenes' THEN 5
+  WHEN 'destinos' THEN 6
+  WHEN 'pesajes' THEN 99
+  ELSE 50 END, id ASC LIMIT ?`,
 		EstadoPendiente, ahora, LimitePorVuelta,
 	)
 	if err != nil {
@@ -114,6 +122,14 @@ func recortar(mensaje string) string {
 		return mensaje[:190]
 	}
 	return strings.TrimSpace(mensaje)
+}
+
+func (o *Outbox) TieneEventoActivo(recurso string, entidadID int) (bool, error) {
+	var n int
+	err := o.db.QueryRowContext(context.Background(), `
+SELECT COUNT(*) FROM sync_outbox WHERE recurso = ? AND entidad_id = ? AND estado IN (?, ?)`,
+		recurso, entidadID, EstadoPendiente, EstadoError).Scan(&n)
+	return n > 0, err
 }
 
 func nullableWebID(id *int) any {

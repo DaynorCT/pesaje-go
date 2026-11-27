@@ -24,6 +24,8 @@ export function BoletaConfigGuardar(arg1:main.BoletaConfigDTO):Promise<main.AbmR
 
 export function BoletaConfigObtener():Promise<main.BoletaConfigDTO>;
 
+export function CambiarModoSync(arg1:string):Promise<main.AccionDTO>;
+
 export function CapturarPeso():Promise<main.AccionDTO>;
 
 export function CerrarSesion():Promise<void>;

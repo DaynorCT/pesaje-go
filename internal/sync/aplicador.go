@@ -183,6 +183,20 @@ func (a *AplicadorDelta) versionLocal(recurso string, id int) (int, error) {
 	return int(v.Int64), nil
 }
 
+func (a *AplicadorDelta) LimpiarPendientePush(recurso string, id int) error {
+	tablas := map[string]bool{
+		"productos": true, "origenes": true, "destinos": true,
+		"vehiculos": true, "choferes": true, "proveedores": true,
+	}
+	if !tablas[recurso] {
+		return nil
+	}
+	_, err := a.db.ExecContext(context.Background(),
+		fmt.Sprintf(`UPDATE %s SET pendiente_push = 0, fecha_modificacion = ? WHERE id = ?`, recurso),
+		datos.Ahora(), id)
+	return err
+}
+
 func (a *AplicadorDelta) pendienteLocal(recurso string, id int) (bool, error) {
 	var v sql.NullInt64
 	err := a.db.QueryRowContext(context.Background(),

@@ -65,6 +65,12 @@ func AbmListar(ctx context.Context, db *sql.DB, entidad string) ([]AbmFila, erro
 
 // AbmGuardar crea o actualiza un registro.
 func AbmGuardar(ctx context.Context, db *sql.DB, entidad string, id int64, campos map[string]string) error {
+	_, err := AbmGuardarConID(ctx, db, entidad, id, campos)
+	return err
+}
+
+// AbmGuardarConID devuelve el id del registro creado o actualizado.
+func AbmGuardarConID(ctx context.Context, db *sql.DB, entidad string, id int64, campos map[string]string) (int64, error) {
 	if campos == nil {
 		campos = map[string]string{}
 	}
@@ -78,11 +84,11 @@ func AbmGuardar(ctx context.Context, db *sql.DB, entidad string, id int64, campo
 	case "proveedores":
 		return guardarProveedorABM(ctx, db, id, campos)
 	case "empresas":
-		return guardarEmpresa(ctx, db, id, campos)
+		return id, guardarEmpresa(ctx, db, id, campos)
 	case "usuarios":
-		return guardarUsuario(ctx, db, id, campos)
+		return id, guardarUsuario(ctx, db, id, campos)
 	default:
-		return fmt.Errorf("entidad ABM desconocida: %s", entidad)
+		return 0, fmt.Errorf("entidad ABM desconocida: %s", entidad)
 	}
 }
 
@@ -111,21 +117,25 @@ func listarCatalogo(ctx context.Context, db *sql.DB, tabla string) ([]AbmFila, e
 	return out, rows.Err()
 }
 
-func guardarCatalogo(ctx context.Context, db *sql.DB, tabla string, id int64, c map[string]string) error {
+func guardarCatalogo(ctx context.Context, db *sql.DB, tabla string, id int64, c map[string]string) (int64, error) {
 	if err := validarTablaCatalogo(tabla); err != nil {
-		return err
+		return 0, err
 	}
 	nombre := strings.TrimSpace(c["nombre"])
 	if nombre == "" {
-		return fmt.Errorf("el campo Nombre es obligatorio")
+		return 0, fmt.Errorf("el campo Nombre es obligatorio")
 	}
 	desc := strings.TrimSpace(c["descripcion"])
 	fecha := Ahora()
 	if id <= 0 {
-		_, err := db.ExecContext(ctx, fmt.Sprintf(`
+		res, err := db.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %s (nombre, descripcion, estado, pendiente_push, fecha_creacion, fecha_modificacion)
 VALUES (?, ?, 'ACTIVO', 1, ?, ?)`, tabla), nombre, desc, fecha, fecha)
-		return err
+		if err != nil {
+			return 0, err
+		}
+		nid, _ := res.LastInsertId()
+		return nid, nil
 	}
 	estado := strings.TrimSpace(c["estado"])
 	if estado == "" {
@@ -134,7 +144,7 @@ VALUES (?, ?, 'ACTIVO', 1, ?, ?)`, tabla), nombre, desc, fecha, fecha)
 	_, err := db.ExecContext(ctx, fmt.Sprintf(`
 UPDATE %s SET nombre=?, descripcion=?, estado=?, pendiente_push=1, fecha_modificacion=? WHERE id=?`, tabla),
 		nombre, desc, estado, fecha, id)
-	return err
+	return id, err
 }
 
 func listarVehiculos(ctx context.Context, db *sql.DB) ([]AbmFila, error) {
@@ -159,22 +169,26 @@ func listarVehiculos(ctx context.Context, db *sql.DB) ([]AbmFila, error) {
 	return out, rows.Err()
 }
 
-func guardarVehiculo(ctx context.Context, db *sql.DB, id int64, c map[string]string) error {
+func guardarVehiculo(ctx context.Context, db *sql.DB, id int64, c map[string]string) (int64, error) {
 	placa := strings.TrimSpace(c["placa"])
 	if placa == "" {
-		return fmt.Errorf("el campo Placa es obligatorio")
+		return 0, fmt.Errorf("el campo Placa es obligatorio")
 	}
 	tipo := strings.TrimSpace(c["tipo"])
 	tara, err := parsearEntero(c["tara"], "Tara")
 	if err != nil {
-		return err
+		return 0, err
 	}
 	fecha := Ahora()
 	if id <= 0 {
-		_, err := db.ExecContext(ctx, `
+		res, err := db.ExecContext(ctx, `
 INSERT INTO vehiculos (placa, tipo_vehiculo, tara, estado, pendiente_push, fecha_creacion, fecha_modificacion)
 VALUES (?, ?, ?, 'ACTIVO', 1, ?, ?)`, placa, tipo, tara, fecha, fecha)
-		return err
+		if err != nil {
+			return 0, err
+		}
+		nid, _ := res.LastInsertId()
+		return nid, nil
 	}
 	estado := strings.TrimSpace(c["estado"])
 	if estado == "" {
@@ -183,7 +197,7 @@ VALUES (?, ?, ?, 'ACTIVO', 1, ?, ?)`, placa, tipo, tara, fecha, fecha)
 	_, err = db.ExecContext(ctx, `
 UPDATE vehiculos SET placa=?, tipo_vehiculo=?, tara=?, estado=?, pendiente_push=1, fecha_modificacion=? WHERE id=?`,
 		placa, tipo, tara, estado, fecha, id)
-	return err
+	return id, err
 }
 
 func listarChoferes(ctx context.Context, db *sql.DB) ([]AbmFila, error) {
@@ -217,14 +231,14 @@ FROM choferes c JOIN personas p ON p.id = c.persona_id ORDER BY c.id DESC`)
 	return out, rows.Err()
 }
 
-func guardarChofer(ctx context.Context, db *sql.DB, id int64, c map[string]string) error {
+func guardarChofer(ctx context.Context, db *sql.DB, id int64, c map[string]string) (int64, error) {
 	nombre := strings.TrimSpace(c["nombre"])
 	lic := strings.TrimSpace(c["licencia"])
 	if nombre == "" {
-		return fmt.Errorf("el campo Nombre es obligatorio")
+		return 0, fmt.Errorf("el campo Nombre es obligatorio")
 	}
 	if lic == "" {
-		return fmt.Errorf("el campo Licencia es obligatorio")
+		return 0, fmt.Errorf("el campo Licencia es obligatorio")
 	}
 	apP := strings.TrimSpace(c["apellido_paterno"])
 	apM := strings.TrimSpace(c["apellido_materno"])
@@ -232,8 +246,7 @@ func guardarChofer(ctx context.Context, db *sql.DB, id int64, c map[string]strin
 	tel := strings.TrimSpace(c["telefono"])
 	fecha := Ahora()
 	if id <= 0 {
-		_, err := CrearChofer(ctx, db, nombre, apP, apM, ci, tel, lic)
-		return err
+		return CrearChofer(ctx, db, nombre, apP, apM, ci, tel, lic)
 	}
 	estado := strings.TrimSpace(c["estado"])
 	if estado == "" {
@@ -241,26 +254,29 @@ func guardarChofer(ctx context.Context, db *sql.DB, id int64, c map[string]strin
 	}
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer tx.Rollback()
 	var personaID int64
 	if err := tx.QueryRowContext(ctx, `SELECT persona_id FROM choferes WHERE id=?`, id).Scan(&personaID); err != nil {
-		return err
+		return 0, err
 	}
 	_, err = tx.ExecContext(ctx, `
 UPDATE personas SET nombre=?, apellido_paterno=?, apellido_materno=?, ci=?, telefono=?, estado=?, fecha_modificacion=? WHERE id=?`,
 		nombre, apP, apM, ci, tel, estado, fecha, personaID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	_, err = tx.ExecContext(ctx, `
 UPDATE choferes SET licencia=?, telefono=?, estado=?, pendiente_push=1, fecha_modificacion=? WHERE id=?`,
 		lic, tel, estado, fecha, id)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
 func listarProveedores(ctx context.Context, db *sql.DB) ([]AbmFila, error) {
@@ -292,15 +308,14 @@ FROM proveedores pr JOIN personas p ON p.id = pr.persona_id ORDER BY pr.id DESC`
 	return out, rows.Err()
 }
 
-func guardarProveedorABM(ctx context.Context, db *sql.DB, id int64, c map[string]string) error {
+func guardarProveedorABM(ctx context.Context, db *sql.DB, id int64, c map[string]string) (int64, error) {
 	nombre := strings.TrimSpace(c["nombre"])
 	empresa := strings.TrimSpace(c["empresa"])
 	if nombre == "" && empresa == "" {
-		return fmt.Errorf("indique el nombre o la empresa (al menos uno)")
+		return 0, fmt.Errorf("indique el nombre o la empresa (al menos uno)")
 	}
 	if id <= 0 {
-		_, err := CrearProveedor(ctx, db, nombre, c["apellido_paterno"], c["apellido_materno"], c["ci"], c["telefono"], empresa, c["descripcion"])
-		return err
+		return CrearProveedor(ctx, db, nombre, c["apellido_paterno"], c["apellido_materno"], c["ci"], c["telefono"], empresa, c["descripcion"])
 	}
 	estado := strings.TrimSpace(c["estado"])
 	if estado == "" {
@@ -309,26 +324,29 @@ func guardarProveedorABM(ctx context.Context, db *sql.DB, id int64, c map[string
 	fecha := Ahora()
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer tx.Rollback()
 	var personaID int64
 	if err := tx.QueryRowContext(ctx, `SELECT persona_id FROM proveedores WHERE id=?`, id).Scan(&personaID); err != nil {
-		return err
+		return 0, err
 	}
 	_, err = tx.ExecContext(ctx, `
 UPDATE personas SET nombre=?, apellido_paterno=?, apellido_materno=?, ci=?, telefono=?, estado=?, fecha_modificacion=? WHERE id=?`,
 		nombre, c["apellido_paterno"], c["apellido_materno"], c["ci"], c["telefono"], estado, fecha, personaID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	_, err = tx.ExecContext(ctx, `
 UPDATE proveedores SET nombre_empresa=?, descripcion=?, estado=?, pendiente_push=1, fecha_modificacion=? WHERE id=?`,
 		empresa, c["descripcion"], estado, fecha, id)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
 func listarEmpresas(ctx context.Context, db *sql.DB) ([]AbmFila, error) {

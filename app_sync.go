@@ -48,6 +48,33 @@ func (a *App) syncAlMostrar() {
 	}()
 }
 
+func (a *App) syncCentralizadorListo() bool {
+	if a.db == nil {
+		return false
+	}
+	cfg := config.Cargar()
+	if strings.TrimSpace(cfg.URL) == "" {
+		return false
+	}
+	a.muSync.Lock()
+	svc := a.syncSvc
+	a.muSync.Unlock()
+	return svc != nil
+}
+
+// encolarCatalogoWeb encola un catálogo creado/actualizado en planta (offline-first).
+func (a *App) encolarCatalogoWeb(recurso string, entidadID int64) {
+	if !a.syncCentralizadorListo() || entidadID <= 0 {
+		return
+	}
+	a.muSync.Lock()
+	svc := a.syncSvc
+	a.muSync.Unlock()
+	if err := svc.EncolarCatalogo(context.Background(), a.db.Conn(), recurso, entidadID); err != nil {
+		return
+	}
+}
+
 // encolarPesajeWeb encola el pesaje finalizado y dispara un intento de sync en segundo plano.
 func (a *App) encolarPesajeWeb(pesajeID int64) {
 	if a.db == nil || pesajeID <= 0 {

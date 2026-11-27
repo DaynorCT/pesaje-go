@@ -4,6 +4,7 @@
   "apikey": "",
   "autoenviar": true,
   "modo_operacion": "INTEGRADO",
+  "modo_sync": "offline_first",
   "alwaysontop": true,
   "timeout_http": 4000,
   "ciclo_catalogos": 5
